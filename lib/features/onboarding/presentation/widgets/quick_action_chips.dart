@@ -1,0 +1,140 @@
+import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/constants/app_constants.dart';
+
+class QuickActionChipsRow extends StatelessWidget {
+  final VoidCallback onNewCaption;
+  final VoidCallback onNewCarousel;
+  final VoidCallback onSchedule;
+
+  const QuickActionChipsRow({
+    super.key,
+    required this.onNewCaption,
+    required this.onNewCarousel,
+    required this.onSchedule,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = constraints.maxWidth;
+        // Buttons width (estimate) + gaps
+        const estimatedContentWidth = 140 * 3 + 24;
+
+        final isNarrow = screenWidth < estimatedContentWidth;
+
+        Widget content = Row(
+          mainAxisAlignment: isNarrow
+              ? MainAxisAlignment.start
+              : MainAxisAlignment.center,
+          children: [
+            _ActionPill(
+              icon: Icons.edit_note_rounded,
+              label: 'New Caption',
+              color: AppColors.arcticBlue,
+              onTap: onNewCaption,
+            ),
+            const SizedBox(width: 12),
+            _ActionPill(
+              icon: Icons.view_carousel_rounded,
+              label: 'New Carousel',
+              color: AppColors.frostPurple,
+              onTap: onNewCarousel,
+            ),
+            const SizedBox(width: 12),
+            _ActionPill(
+              icon: Icons.calendar_today_rounded,
+              label: 'Schedule Post',
+              color: AppColors.auroraTeal,
+              onTap: onSchedule,
+            ),
+          ],
+        );
+
+        if (isNarrow) {
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.spacingLg,
+              vertical: 12,
+            ),
+            clipBehavior: Clip.none,
+            child: content,
+          );
+        } else {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(child: content),
+          );
+        }
+      },
+    );
+  }
+}
+
+class _ActionPill extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionPill({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  State<_ActionPill> createState() => _ActionPillState();
+}
+
+class _ActionPillState extends State<_ActionPill> {
+  double _scale = 1.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _scale = 0.98),
+      onTapUp: (_) => setState(() => _scale = 1.0),
+      onTapCancel: () => setState(() => _scale = 1.0),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _scale,
+        duration: const Duration(milliseconds: 100),
+        child: Container(
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(color: AppColors.grey200),
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withValues(alpha: 0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(widget.icon, size: 20, color: widget.color),
+              const SizedBox(width: 8),
+              Text(
+                widget.label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.grey800,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

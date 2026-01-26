@@ -1,0 +1,694 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../data/content_models.dart';
+
+/// Caption output card with copy functionality
+class CaptionOutputCard extends StatefulWidget {
+  final CaptionVariant variant;
+  final bool isExpanded;
+  final VoidCallback? onToggle;
+
+  const CaptionOutputCard({
+    super.key,
+    required this.variant,
+    this.isExpanded = false,
+    this.onToggle,
+  });
+
+  @override
+  State<CaptionOutputCard> createState() => _CaptionOutputCardState();
+}
+
+class _CaptionOutputCardState extends State<CaptionOutputCard> {
+  void _copyCaption() {
+    Clipboard.setData(ClipboardData(text: widget.variant.caption));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.check_circle, color: AppColors.iceWhite, size: 18),
+            SizedBox(width: 8),
+            Text('Caption copied!'),
+          ],
+        ),
+        backgroundColor: AppColors.auroraTeal,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _copyHashtags() {
+    final hashtagsText = widget.variant.hashtags.map((h) => '#$h').join(' ');
+    Clipboard.setData(ClipboardData(text: hashtagsText));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.check_circle, color: AppColors.iceWhite, size: 18),
+            SizedBox(width: 8),
+            Text('Hashtags copied!'),
+          ],
+        ),
+        backgroundColor: AppColors.frostPurple,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: AppConstants.shortDuration,
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.iceWhite,
+        borderRadius: BorderRadius.circular(AppConstants.radiusMd),
+        border: Border.all(
+          color: widget.isExpanded ? AppColors.arcticBlue : AppColors.grey200,
+          width: widget.isExpanded ? 2 : 1,
+        ),
+        boxShadow: widget.isExpanded
+            ? [
+                BoxShadow(
+                  color: AppColors.arcticBlue.withValues(alpha: 0.15),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
+      ),
+      child: Column(
+        children: [
+          // Header
+          InkWell(
+            onTap: widget.onToggle,
+            borderRadius: BorderRadius.circular(AppConstants.radiusMd),
+            child: Padding(
+              padding: const EdgeInsets.all(AppConstants.spacingMd),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.arcticBlue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      widget.variant.label,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.arcticBlue,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    widget.variant.description,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.grey500),
+                  ),
+                  const Spacer(),
+                  Icon(
+                    widget.isExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: AppColors.grey400,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Expanded content
+          if (widget.isExpanded) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(AppConstants.spacingMd),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Caption
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.grey100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: SelectableText(
+                      widget.variant.caption,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(height: 1.5),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Copy caption button
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: _copyCaption,
+                      icon: const Icon(Icons.copy, size: 16),
+                      label: const Text('Copy Caption'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.arcticBlue,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Hashtags
+                  Text(
+                    'Hashtags',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.labelMedium?.copyWith(color: AppColors.grey600),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: widget.variant.hashtags.map((tag) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.frostPurple.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '#$tag',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.frostPurple,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: _copyHashtags,
+                      icon: const Icon(Icons.tag, size: 16),
+                      label: const Text('Copy Hashtags'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.frostPurple,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Image output card
+class ImageOutputCard extends StatelessWidget {
+  final String? imageUrl;
+  final VoidCallback? onDownload;
+  final VoidCallback? onOpenEditor;
+
+  const ImageOutputCard({
+    super.key,
+    this.imageUrl,
+    this.onDownload,
+    this.onOpenEditor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.iceWhite,
+        borderRadius: BorderRadius.circular(AppConstants.radiusMd),
+        border: Border.all(color: AppColors.grey200),
+      ),
+      child: Column(
+        children: [
+          // Image preview
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: imageUrl != null
+                  ? Image.network(
+                      imageUrl!,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: AppColors.grey100,
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      },
+                      errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                    )
+                  : _buildPlaceholder(),
+            ),
+          ),
+          // Actions
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: onDownload,
+                    icon: const Icon(Icons.download, size: 18),
+                    label: const Text('Download'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: onOpenEditor,
+                    icon: const Icon(Icons.edit, size: 18),
+                    label: const Text('Open in Editor'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.arcticBlue,
+                      foregroundColor: AppColors.iceWhite,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      color: AppColors.grey100,
+      child: const Center(
+        child: Icon(Icons.image, size: 64, color: AppColors.grey300),
+      ),
+    );
+  }
+}
+
+/// Carousel slide card
+class CarouselSlideCard extends StatelessWidget {
+  final CarouselSlide slide;
+
+  const CarouselSlideCard({super.key, required this.slide});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(AppConstants.spacingMd),
+      decoration: BoxDecoration(
+        color: AppColors.iceWhite,
+        borderRadius: BorderRadius.circular(AppConstants.radiusSm),
+        border: Border.all(color: AppColors.grey200),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Slide number
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppColors.sunsetCoral,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Text(
+                '${slide.slideNumber}',
+                style: const TextStyle(
+                  color: AppColors.iceWhite,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  slide.title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  slide.body,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.grey600),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.grey100,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.lightbulb_outline,
+                        size: 14,
+                        color: AppColors.grey500,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          slide.visualSuggestion,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: AppColors.grey500,
+                                fontStyle: FontStyle.italic,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Video output card with progress
+class VideoOutputCard extends StatelessWidget {
+  final double progress;
+  final bool isComplete;
+  final String? videoUrl;
+  final VoidCallback? onDownload;
+  final VoidCallback? onUseInScheduler;
+
+  const VideoOutputCard({
+    super.key,
+    required this.progress,
+    this.isComplete = false,
+    this.videoUrl,
+    this.onDownload,
+    this.onUseInScheduler,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppConstants.spacingMd),
+      decoration: BoxDecoration(
+        color: AppColors.iceWhite,
+        borderRadius: BorderRadius.circular(AppConstants.radiusMd),
+        border: Border.all(color: AppColors.grey200),
+      ),
+      child: Column(
+        children: [
+          // Video thumbnail area
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.penguinBlack,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: isComplete
+                  ? Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        const Icon(
+                          Icons.videocam,
+                          size: 48,
+                          color: AppColors.iceWhite,
+                        ),
+                        Positioned(
+                          bottom: 12,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.auroraTeal,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.check_circle,
+                                  size: 14,
+                                  color: AppColors.iceWhite,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Video Ready',
+                                  style: TextStyle(
+                                    color: AppColors.iceWhite,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.video_camera_back_outlined,
+                          size: 40,
+                          color: AppColors.grey500,
+                        ),
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            backgroundColor: AppColors.grey700,
+                            valueColor: const AlwaysStoppedAnimation(
+                              AppColors.auroraTeal,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Generating video... ${(progress * 100).toInt()}%',
+                          style: const TextStyle(
+                            color: AppColors.grey500,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+          if (isComplete) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: onDownload,
+                    icon: const Icon(Icons.download, size: 18),
+                    label: const Text('Download'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: onUseInScheduler,
+                    icon: const Icon(Icons.calendar_month, size: 18),
+                    label: const Text('Schedule'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.frostPurple,
+                      foregroundColor: AppColors.iceWhite,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Generation progress shimmer
+class GenerationShimmer extends StatefulWidget {
+  final String message;
+
+  const GenerationShimmer({super.key, this.message = 'Generating...'});
+
+  @override
+  State<GenerationShimmer> createState() => _GenerationShimmerState();
+}
+
+class _GenerationShimmerState extends State<GenerationShimmer>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat();
+    _animation = Tween<double>(begin: -1, end: 2).animate(_controller);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppConstants.spacingLg),
+      decoration: BoxDecoration(
+        color: AppColors.iceWhite,
+        borderRadius: BorderRadius.circular(AppConstants.radiusMd),
+        border: Border.all(color: AppColors.grey200),
+      ),
+      child: Column(
+        children: [
+          // Shimmer lines
+          ...List.generate(4, (index) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: AnimatedBuilder(
+                animation: _animation,
+                builder: (context, child) {
+                  return Container(
+                    height: index == 0 ? 24 : 16,
+                    width: index == 3 ? 200 : double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: const [
+                          AppColors.grey200,
+                          AppColors.grey100,
+                          AppColors.grey200,
+                        ],
+                        stops: [
+                          _animation.value - 0.3,
+                          _animation.value,
+                          _animation.value + 0.3,
+                        ].map((s) => s.clamp(0.0, 1.0)).toList(),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          }),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(AppColors.arcticBlue),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                widget.message,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppColors.grey500),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Empty state widget
+class EmptyOutputState extends StatelessWidget {
+  const EmptyOutputState({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppConstants.spacingXl),
+      decoration: BoxDecoration(
+        color: AppColors.iceWhite,
+        borderRadius: BorderRadius.circular(AppConstants.radiusMd),
+        border: Border.all(color: AppColors.grey200),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.grey100,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.auto_awesome,
+              size: 40,
+              color: AppColors.grey400,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Ready to create?',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Generate your first post idea using your Brand Kit context.',
+            textAlign: TextAlign.center,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+          ),
+        ],
+      ),
+    );
+  }
+}
