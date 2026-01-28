@@ -1,10 +1,11 @@
+import 'package:lone_pengu/core/design/lp_design.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../data/content_models.dart';
 
 /// Caption output card with copy functionality
+/// Theme-aware: adapts to light/dark mode
 class CaptionOutputCard extends StatefulWidget {
   final CaptionVariant variant;
   final bool isExpanded;
@@ -28,12 +29,12 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
       SnackBar(
         content: const Row(
           children: [
-            Icon(Icons.check_circle, color: AppColors.iceWhite, size: 18),
+            Icon(Icons.check_circle, color: Colors.white, size: 18),
             SizedBox(width: 8),
             Text('Caption copied!'),
           ],
         ),
-        backgroundColor: AppColors.auroraTeal,
+        backgroundColor: LPColors.accent,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         duration: const Duration(seconds: 2),
@@ -48,12 +49,12 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
       SnackBar(
         content: const Row(
           children: [
-            Icon(Icons.check_circle, color: AppColors.iceWhite, size: 18),
+            Icon(Icons.check_circle, color: Colors.white, size: 18),
             SizedBox(width: 8),
             Text('Hashtags copied!'),
           ],
         ),
-        backgroundColor: AppColors.frostPurple,
+        backgroundColor: LPColors.accent,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         duration: const Duration(seconds: 2),
@@ -63,20 +64,32 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Theme-aware colors
+    final cardBgColor = isDark ? LPColors.cardDark : LPColors.surface;
+    final borderColor = isDark ? LPColors.borderDark : LPColors.grey200;
+    final inputBgColor = isDark ? LPColors.surfaceDark : LPColors.grey100;
+    final textSecondary = isDark
+        ? LPColors.textSecondaryDark
+        : LPColors.grey500;
+    final textTertiary = isDark ? LPColors.textTertiaryDark : LPColors.grey600;
+
     return AnimatedContainer(
       duration: AppConstants.shortDuration,
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppColors.iceWhite,
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(AppConstants.radiusMd),
         border: Border.all(
-          color: widget.isExpanded ? AppColors.arcticBlue : AppColors.grey200,
+          color: widget.isExpanded ? LPColors.primary : borderColor,
           width: widget.isExpanded ? 2 : 1,
         ),
         boxShadow: widget.isExpanded
             ? [
                 BoxShadow(
-                  color: AppColors.arcticBlue.withValues(alpha: 0.15),
+                  color: LPColors.primary.withValues(alpha: 0.15),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -99,7 +112,7 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.arcticBlue.withValues(alpha: 0.1),
+                      color: LPColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -107,7 +120,7 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.arcticBlue,
+                        color: LPColors.primary,
                       ),
                     ),
                   ),
@@ -116,14 +129,16 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
                     widget.variant.description,
                     style: Theme.of(
                       context,
-                    ).textTheme.bodySmall?.copyWith(color: AppColors.grey500),
+                    ).textTheme.bodySmall?.copyWith(color: textSecondary),
                   ),
                   const Spacer(),
                   Icon(
                     widget.isExpanded
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
-                    color: AppColors.grey400,
+                    color: isDark
+                        ? LPColors.textSecondaryDark
+                        : LPColors.grey400,
                   ),
                 ],
               ),
@@ -131,7 +146,7 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
           ),
           // Expanded content
           if (widget.isExpanded) ...[
-            const Divider(height: 1),
+            Divider(height: 1, color: borderColor),
             Padding(
               padding: const EdgeInsets.all(AppConstants.spacingMd),
               child: Column(
@@ -142,14 +157,15 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.grey100,
+                      color: inputBgColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: SelectableText(
                       widget.variant.caption,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(height: 1.5),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        height: 1.5,
+                        color: theme.colorScheme.onSurface,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -161,7 +177,7 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
                       icon: const Icon(Icons.copy, size: 16),
                       label: const Text('Copy Caption'),
                       style: TextButton.styleFrom(
-                        foregroundColor: AppColors.arcticBlue,
+                        foregroundColor: LPColors.primary,
                       ),
                     ),
                   ),
@@ -171,7 +187,7 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
                     'Hashtags',
                     style: Theme.of(
                       context,
-                    ).textTheme.labelMedium?.copyWith(color: AppColors.grey600),
+                    ).textTheme.labelMedium?.copyWith(color: textTertiary),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
@@ -184,14 +200,14 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.frostPurple.withValues(alpha: 0.1),
+                          color: LPColors.accent.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           '#$tag',
                           style: const TextStyle(
                             fontSize: 12,
-                            color: AppColors.frostPurple,
+                            color: LPColors.accent,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -206,7 +222,7 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
                       icon: const Icon(Icons.tag, size: 16),
                       label: const Text('Copy Hashtags'),
                       style: TextButton.styleFrom(
-                        foregroundColor: AppColors.frostPurple,
+                        foregroundColor: LPColors.accent,
                       ),
                     ),
                   ),
@@ -221,6 +237,7 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
 }
 
 /// Image output card
+/// Theme-aware: adapts to light/dark mode
 class ImageOutputCard extends StatelessWidget {
   final String? imageUrl;
   final VoidCallback? onDownload;
@@ -235,11 +252,17 @@ class ImageOutputCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardBgColor = isDark ? LPColors.cardDark : LPColors.surface;
+    final borderColor = isDark ? LPColors.borderDark : LPColors.grey200;
+    final placeholderBgColor = isDark ? LPColors.surfaceDark : LPColors.grey100;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.iceWhite,
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(AppConstants.radiusMd),
-        border: Border.all(color: AppColors.grey200),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         children: [
@@ -255,15 +278,15 @@ class ImageOutputCard extends StatelessWidget {
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
                         return Container(
-                          color: AppColors.grey100,
+                          color: placeholderBgColor,
                           child: const Center(
                             child: CircularProgressIndicator(),
                           ),
                         );
                       },
-                      errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                      errorBuilder: (_, __, ___) => _buildPlaceholder(context),
                     )
-                  : _buildPlaceholder(),
+                  : _buildPlaceholder(context),
             ),
           ),
           // Actions
@@ -285,8 +308,8 @@ class ImageOutputCard extends StatelessWidget {
                     icon: const Icon(Icons.edit, size: 18),
                     label: const Text('Open in Editor'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.arcticBlue,
-                      foregroundColor: AppColors.iceWhite,
+                      backgroundColor: LPColors.primary,
+                      foregroundColor: Colors.white,
                     ),
                   ),
                 ),
@@ -298,17 +321,23 @@ class ImageOutputCard extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: AppColors.grey100,
-      child: const Center(
-        child: Icon(Icons.image, size: 64, color: AppColors.grey300),
+      color: isDark ? LPColors.surfaceDark : LPColors.grey100,
+      child: Center(
+        child: Icon(
+          Icons.image,
+          size: 64,
+          color: isDark ? LPColors.textTertiaryDark : LPColors.grey300,
+        ),
       ),
     );
   }
 }
 
 /// Carousel slide card
+/// Theme-aware: adapts to light/dark mode
 class CarouselSlideCard extends StatelessWidget {
   final CarouselSlide slide;
 
@@ -316,13 +345,23 @@ class CarouselSlideCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardBgColor = isDark ? LPColors.cardDark : LPColors.surface;
+    final borderColor = isDark ? LPColors.borderDark : LPColors.grey200;
+    final inputBgColor = isDark ? LPColors.surfaceDark : LPColors.grey100;
+    final textTertiary = isDark ? LPColors.textTertiaryDark : LPColors.grey600;
+    final textSecondary = isDark
+        ? LPColors.textSecondaryDark
+        : LPColors.grey500;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(AppConstants.spacingMd),
       decoration: BoxDecoration(
-        color: AppColors.iceWhite,
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(AppConstants.radiusSm),
-        border: Border.all(color: AppColors.grey200),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,14 +371,14 @@ class CarouselSlideCard extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: AppColors.sunsetCoral,
+              color: LPColors.error,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Center(
               child: Text(
                 '${slide.slideNumber}',
                 style: const TextStyle(
-                  color: AppColors.iceWhite,
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -355,6 +394,7 @@ class CarouselSlideCard extends StatelessWidget {
                   slide.title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -362,21 +402,21 @@ class CarouselSlideCard extends StatelessWidget {
                   slide.body,
                   style: Theme.of(
                     context,
-                  ).textTheme.bodyMedium?.copyWith(color: AppColors.grey600),
+                  ).textTheme.bodyMedium?.copyWith(color: textTertiary),
                 ),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.grey100,
+                    color: inputBgColor,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.lightbulb_outline,
                         size: 14,
-                        color: AppColors.grey500,
+                        color: textSecondary,
                       ),
                       const SizedBox(width: 6),
                       Expanded(
@@ -384,7 +424,7 @@ class CarouselSlideCard extends StatelessWidget {
                           slide.visualSuggestion,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
-                                color: AppColors.grey500,
+                                color: textSecondary,
                                 fontStyle: FontStyle.italic,
                               ),
                         ),
@@ -402,6 +442,7 @@ class CarouselSlideCard extends StatelessWidget {
 }
 
 /// Video output card with progress
+/// Theme-aware: adapts to light/dark mode
 class VideoOutputCard extends StatelessWidget {
   final double progress;
   final bool isComplete;
@@ -420,12 +461,23 @@ class VideoOutputCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardBgColor = isDark ? LPColors.cardDark : LPColors.surface;
+    final borderColor = isDark ? LPColors.borderDark : LPColors.grey200;
+    final videoBgColor = isDark
+        ? LPColors.backgroundDark
+        : LPColors.textPrimary;
+    final textSecondary = isDark
+        ? LPColors.textSecondaryDark
+        : LPColors.grey500;
+
     return Container(
       padding: const EdgeInsets.all(AppConstants.spacingMd),
       decoration: BoxDecoration(
-        color: AppColors.iceWhite,
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(AppConstants.radiusMd),
-        border: Border.all(color: AppColors.grey200),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         children: [
@@ -434,7 +486,7 @@ class VideoOutputCard extends StatelessWidget {
             aspectRatio: 16 / 9,
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.penguinBlack,
+                color: videoBgColor,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: isComplete
@@ -444,7 +496,7 @@ class VideoOutputCard extends StatelessWidget {
                         const Icon(
                           Icons.videocam,
                           size: 48,
-                          color: AppColors.iceWhite,
+                          color: Colors.white,
                         ),
                         Positioned(
                           bottom: 12,
@@ -454,7 +506,7 @@ class VideoOutputCard extends StatelessWidget {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.auroraTeal,
+                              color: LPColors.accent,
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: const Row(
@@ -463,13 +515,13 @@ class VideoOutputCard extends StatelessWidget {
                                 Icon(
                                   Icons.check_circle,
                                   size: 14,
-                                  color: AppColors.iceWhite,
+                                  color: Colors.white,
                                 ),
                                 SizedBox(width: 4),
                                 Text(
                                   'Video Ready',
                                   style: TextStyle(
-                                    color: AppColors.iceWhite,
+                                    color: Colors.white,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -483,29 +535,28 @@ class VideoOutputCard extends StatelessWidget {
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.video_camera_back_outlined,
                           size: 40,
-                          color: AppColors.grey500,
+                          color: textSecondary,
                         ),
                         const SizedBox(height: 12),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 32),
                           child: LinearProgressIndicator(
                             value: progress,
-                            backgroundColor: AppColors.grey700,
+                            backgroundColor: isDark
+                                ? LPColors.borderDark
+                                : LPColors.grey700,
                             valueColor: const AlwaysStoppedAnimation(
-                              AppColors.auroraTeal,
+                              LPColors.accent,
                             ),
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Generating video... ${(progress * 100).toInt()}%',
-                          style: const TextStyle(
-                            color: AppColors.grey500,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: textSecondary, fontSize: 12),
                         ),
                       ],
                     ),
@@ -529,8 +580,8 @@ class VideoOutputCard extends StatelessWidget {
                     icon: const Icon(Icons.calendar_month, size: 18),
                     label: const Text('Schedule'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.frostPurple,
-                      foregroundColor: AppColors.iceWhite,
+                      backgroundColor: LPColors.accent,
+                      foregroundColor: Colors.white,
                     ),
                   ),
                 ),
@@ -544,6 +595,7 @@ class VideoOutputCard extends StatelessWidget {
 }
 
 /// Generation progress shimmer
+/// Theme-aware: adapts to light/dark mode
 class GenerationShimmer extends StatefulWidget {
   final String message;
 
@@ -576,12 +628,24 @@ class _GenerationShimmerState extends State<GenerationShimmer>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardBgColor = isDark ? LPColors.cardDark : LPColors.surface;
+    final borderColor = isDark ? LPColors.borderDark : LPColors.grey200;
+    final shimmerBase = isDark ? LPColors.surfaceDark : LPColors.grey200;
+    final shimmerHighlight = isDark
+        ? LPColors.cardElevatedDark
+        : LPColors.grey100;
+    final textSecondary = isDark
+        ? LPColors.textSecondaryDark
+        : LPColors.grey500;
+
     return Container(
       padding: const EdgeInsets.all(AppConstants.spacingLg),
       decoration: BoxDecoration(
-        color: AppColors.iceWhite,
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(AppConstants.radiusMd),
-        border: Border.all(color: AppColors.grey200),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         children: [
@@ -600,11 +664,7 @@ class _GenerationShimmerState extends State<GenerationShimmer>
                       gradient: LinearGradient(
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
-                        colors: const [
-                          AppColors.grey200,
-                          AppColors.grey100,
-                          AppColors.grey200,
-                        ],
+                        colors: [shimmerBase, shimmerHighlight, shimmerBase],
                         stops: [
                           _animation.value - 0.3,
                           _animation.value,
@@ -621,12 +681,12 @@ class _GenerationShimmerState extends State<GenerationShimmer>
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 16,
                 height: 16,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation(AppColors.arcticBlue),
+                  valueColor: AlwaysStoppedAnimation(LPColors.primary),
                 ),
               ),
               const SizedBox(width: 8),
@@ -634,7 +694,7 @@ class _GenerationShimmerState extends State<GenerationShimmer>
                 widget.message,
                 style: Theme.of(
                   context,
-                ).textTheme.bodySmall?.copyWith(color: AppColors.grey500),
+                ).textTheme.bodySmall?.copyWith(color: textSecondary),
               ),
             ],
           ),
@@ -645,17 +705,28 @@ class _GenerationShimmerState extends State<GenerationShimmer>
 }
 
 /// Empty state widget
+/// Theme-aware: adapts to light/dark mode
 class EmptyOutputState extends StatelessWidget {
   const EmptyOutputState({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardBgColor = isDark ? LPColors.cardDark : LPColors.surface;
+    final borderColor = isDark ? LPColors.borderDark : LPColors.grey200;
+    final iconBgColor = isDark ? LPColors.surfaceDark : LPColors.grey100;
+    final iconColor = isDark ? LPColors.textTertiaryDark : LPColors.grey400;
+    final textSecondary = isDark
+        ? LPColors.textSecondaryDark
+        : LPColors.grey500;
+
     return Container(
       padding: const EdgeInsets.all(AppConstants.spacingXl),
       decoration: BoxDecoration(
-        color: AppColors.iceWhite,
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(AppConstants.radiusMd),
-        border: Border.all(color: AppColors.grey200),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         children: [
@@ -663,21 +734,18 @@ class EmptyOutputState extends StatelessWidget {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: AppColors.grey100,
+              color: iconBgColor,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.auto_awesome,
-              size: 40,
-              color: AppColors.grey400,
-            ),
+            child: Icon(Icons.auto_awesome, size: 40, color: iconColor),
           ),
           const SizedBox(height: 16),
           Text(
             'Ready to create?',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurface,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -685,7 +753,7 @@ class EmptyOutputState extends StatelessWidget {
             textAlign: TextAlign.center,
             style: Theme.of(
               context,
-            ).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+            ).textTheme.bodyMedium?.copyWith(color: textSecondary),
           ),
         ],
       ),

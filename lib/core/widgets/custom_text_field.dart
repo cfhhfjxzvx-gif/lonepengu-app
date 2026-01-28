@@ -1,6 +1,5 @@
+import 'package:lone_pengu/core/design/lp_design.dart';
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-
 /// Custom styled text field
 class CustomTextField extends StatelessWidget {
   final TextEditingController? controller;
@@ -48,7 +47,7 @@ class CustomTextField extends StatelessWidget {
       maxLines: maxLines,
       style: Theme.of(
         context,
-      ).textTheme.bodyLarge?.copyWith(color: AppColors.penguinBlack),
+      ).textTheme.bodyLarge?.copyWith(color: LPColors.textPrimary),
       decoration: InputDecoration(
         hintText: hintText,
         labelText: labelText,

@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/design/lp_design.dart';
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/widgets/responsive_builder.dart';
+
 import '../../domain/brand_kit_model.dart';
 import '../../data/brand_kit_storage.dart';
 import '../widgets/brand_kit_stepper.dart';
@@ -14,8 +14,6 @@ import '../widgets/brand_preview_card.dart';
 import '../widgets/color_swatch_picker.dart';
 import '../widgets/voice_chips.dart';
 import '../widgets/hashtag_group_card.dart';
-
-import '../../../../core/widgets/app_background.dart';
 
 class BrandKitScreen extends StatefulWidget {
   const BrandKitScreen({super.key});
@@ -65,7 +63,7 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
       setState(() => _currentStep = step);
       _pageController.animateToPage(
         step,
-        duration: AppConstants.mediumDuration,
+        duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
       );
     }
@@ -83,7 +81,6 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
     }
   }
 
-  /// Pick logo - works on both Web and Mobile
   Future<void> _pickLogo() async {
     try {
       final picker = ImagePicker();
@@ -94,21 +91,19 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
         imageQuality: 85,
       );
 
-      if (image == null) return; // User cancelled
+      if (image == null) return;
 
       if (kIsWeb) {
-        // For Web: Read as bytes
         final bytes = await image.readAsBytes();
         if (mounted) {
           setState(() {
             _brandKit = _brandKit.copyWith(
               logoBytes: bytes,
-              logoPath: image.name, // Store name for reference
+              logoPath: image.name,
             );
           });
         }
       } else {
-        // For Mobile/Desktop: Use file path
         if (mounted) {
           setState(() {
             _brandKit = _brandKit.copyWith(logoPath: image.path);
@@ -120,7 +115,7 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Could not pick image: $e'),
-            backgroundColor: AppColors.sunsetCoral,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -128,12 +123,12 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
   }
 
   Future<void> _saveBrandKit() async {
-    // Validate
+    final theme = Theme.of(context);
     if (_brandKit.businessName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your business name'),
-          backgroundColor: AppColors.sunsetCoral,
+        SnackBar(
+          content: const Text('Please enter your business name'),
+          backgroundColor: theme.colorScheme.error,
         ),
       );
       _goToStep(0);
@@ -148,26 +143,26 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
-                Icon(Icons.check_circle, color: AppColors.iceWhite),
-                SizedBox(width: 8),
-                Text('Brand Kit saved successfully!'),
+                Icon(Icons.check_circle, color: theme.colorScheme.onSecondary),
+                const Gap(width: 8),
+                const Expanded(child: Text('Brand Kit saved successfully!')),
               ],
             ),
-            backgroundColor: AppColors.auroraTeal,
+            backgroundColor: const Color(0xFF10B981), // Success green
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
         );
         context.go(AppRoutes.home);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to save. Please try again.'),
-            backgroundColor: AppColors.sunsetCoral,
+          SnackBar(
+            content: const Text('Failed to save. Please try again.'),
+            backgroundColor: theme.colorScheme.error,
           ),
         );
       }
@@ -184,118 +179,124 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (bool didPop, dynamic result) {
-        if (didPop) return;
-        _handleBack();
-      },
-      child: Scaffold(
+    final theme = Theme.of(context);
+
+    return AppScaffold(
+      useSafeArea: true,
+      appBar: AppBar(
+        title: const Text('Brand Kit'),
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: AppColors.iceWhite,
-          elevation: 0,
-          leading: IconButton(
-            onPressed: _handleBack,
-            icon: const Icon(Icons.arrow_back_rounded),
-            color: AppColors.penguinBlack,
-          ),
-          title: Text(
-            'Brand Kit',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          centerTitle: true,
+        elevation: 0,
+        leading: AppIconButton(
+          icon: Icons.arrow_back_rounded,
+          onTap: _handleBack,
         ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : AppBackground(
-                child: ResponsiveBuilder(
-                  builder: (context, deviceType) {
-                    return Column(
-                      children: [
-                        // Stepper
-                        Container(
-                          color: AppColors.iceWhite,
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: BrandKitStepper(
-                            currentStep: _currentStep,
-                            steps: _stepLabels,
-                            onStepTap: _goToStep,
-                          ),
-                        ),
-                        // Preview Card
-                        BrandPreviewCard(brandKit: _brandKit),
-                        const SizedBox(height: 16),
-                        // Step Content
-                        Expanded(
-                          child: PageView(
-                            controller: _pageController,
-                            physics: const NeverScrollableScrollPhysics(),
-                            onPageChanged: (index) =>
-                                setState(() => _currentStep = index),
-                            children: [
-                              _buildStep1Logo(),
-                              _buildStep2Colors(),
-                              _buildStep3Fonts(),
-                              _buildStep4VoiceHashtags(),
-                            ],
-                          ),
-                        ),
-                        // Bottom Navigation
-                        _buildBottomNav(),
-                      ],
-                    );
-                  },
-                ),
-              ),
       ),
+      body: _isLoading
+          ? const AppLoading()
+          : Column(
+              children: [
+                // Stepper
+                Container(
+                  color: Colors.transparent,
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: BrandKitStepper(
+                    currentStep: _currentStep,
+                    steps: _stepLabels,
+                    onStepTap: _goToStep,
+                  ),
+                ),
+                // Main content
+                Expanded(
+                  child: AppPage(
+                    scroll: false,
+                    padding: EdgeInsets.zero,
+                    child: AppMaxWidth(
+                      maxWidth: 600,
+                      child: Column(
+                        children: [
+                          // Preview Card
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: BrandPreviewCard(brandKit: _brandKit),
+                          ),
+                          const SizedBox(height: 16),
+                          // Step Content
+                          Expanded(
+                            child: PageView(
+                              controller: _pageController,
+                              physics: const NeverScrollableScrollPhysics(),
+                              onPageChanged: (index) =>
+                                  setState(() => _currentStep = index),
+                              children: [
+                                _buildStep1Logo(),
+                                _buildStep2Colors(),
+                                _buildStep3Fonts(),
+                                _buildStep4VoiceHashtags(),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                // Bottom Navigation
+                _buildBottomNav(),
+              ],
+            ),
     );
   }
 
   Widget _buildStep1Logo() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppConstants.spacingMd),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionCard(
-            title: 'Business Logo',
+    final theme = Theme.of(context);
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      children: [
+        AppSection(
+          title: 'Business Logo',
+          child: AppCard(
+            width: double.infinity,
             child: Column(
               children: [
-                // Logo preview - Platform aware
                 GestureDetector(
                   onTap: _pickLogo,
                   child: Container(
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      color: AppColors.grey100,
+                      color: theme.colorScheme.surfaceContainerHighest,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: AppColors.grey300,
+                        color: theme.colorScheme.outlineVariant,
                         width: 2,
-                        strokeAlign: BorderSide.strokeAlignOutside,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                        ),
+                      ],
                     ),
                     child: ClipOval(child: _buildLogoPreview()),
                   ),
                 ),
                 const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: _pickLogo,
-                  icon: const Icon(Icons.upload_rounded, size: 18),
-                  label: Text(
-                    _brandKit.hasLogo ? 'Change Logo' : 'Upload Logo',
-                  ),
+                AppButton.secondary(
+                  label: _brandKit.hasLogo ? 'Change Logo' : 'Upload Logo',
+                  icon: Icons.upload_rounded,
+                  onTap: _pickLogo,
+                  size: ButtonSize.sm,
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          _buildSectionCard(
-            title: 'Business Name',
+        ),
+        const SizedBox(height: 24),
+        AppSection(
+          title: 'Business Name',
+          child: AppCard(
             child: TextField(
               controller: _businessNameController,
               decoration: const InputDecoration(
@@ -310,16 +311,14 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
               },
             ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 48),
+      ],
     );
   }
 
-  /// Build logo preview - handles Web vs Mobile
   Widget _buildLogoPreview() {
-    // Check if we have logo bytes (Web) or path (Mobile)
     if (_brandKit.logoBytes != null && _brandKit.logoBytes!.isNotEmpty) {
-      // Web: Use Image.memory
       return Image.memory(
         _brandKit.logoBytes!,
         fit: BoxFit.cover,
@@ -330,7 +329,6 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
     } else if (!kIsWeb &&
         _brandKit.logoPath != null &&
         _brandKit.logoPath!.isNotEmpty) {
-      // Mobile/Desktop: Use Image.file
       return Image.file(
         File(_brandKit.logoPath!),
         fit: BoxFit.cover,
@@ -339,28 +337,30 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
         errorBuilder: (_, __, ___) => _buildLogoPlaceholder(),
       );
     }
-
-    // No logo - show placeholder
     return _buildLogoPlaceholder();
   }
 
   Widget _buildLogoPlaceholder() {
+    final theme = Theme.of(context);
     return Container(
       width: 120,
       height: 120,
-      color: AppColors.grey100,
+      color: theme.colorScheme.surfaceContainerHighest,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             Icons.add_photo_alternate_outlined,
             size: 32,
-            color: AppColors.grey400,
+            color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
           ),
           const SizedBox(height: 4),
           Text(
             'Add Logo',
-            style: TextStyle(fontSize: 12, color: AppColors.grey500),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -368,13 +368,12 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
   }
 
   Widget _buildStep2Colors() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppConstants.spacingMd),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionCard(
-            title: 'Brand Colors',
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      children: [
+        AppSection(
+          title: 'Brand Colors',
+          child: AppCard(
             child: Column(
               children: [
                 ColorSwatchPicker(
@@ -388,7 +387,7 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
                     });
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 ColorSwatchPicker(
                   label: 'Secondary Color',
                   selectedColor: _brandKit.colors.secondary,
@@ -400,7 +399,7 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
                     });
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 ColorSwatchPicker(
                   label: 'Accent Color',
                   selectedColor: _brandKit.colors.accent,
@@ -412,39 +411,43 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
                     });
                   },
                 ),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: () {
+                const SizedBox(height: 24),
+                AppButton.soft(
+                  label: 'Apply from Logo',
+                  icon: Icons.auto_fix_high,
+                  onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Auto-palette from logo coming soon! 🎨'),
-                        backgroundColor: AppColors.frostPurple,
+                      SnackBar(
+                        content: const Text(
+                          'Auto-palette from logo coming soon! 🎨',
+                        ),
+                        backgroundColor: Theme.of(context).colorScheme.tertiary,
                       ),
                     );
                   },
-                  icon: const Icon(Icons.auto_fix_high, size: 18),
-                  label: const Text('Apply from Logo'),
+                  size: ButtonSize.sm,
+                  fullWidth: true,
                 ),
               ],
             ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 48),
+      ],
     );
   }
 
   Widget _buildStep3Fonts() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppConstants.spacingMd),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionCard(
-            title: 'Typography',
+    final theme = Theme.of(context);
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      children: [
+        AppSection(
+          title: 'Typography',
+          child: AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Heading font dropdown
                 _buildFontDropdown(
                   label: 'Heading Font',
                   value: _brandKit.headingFont,
@@ -456,7 +459,6 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                // Body font dropdown
                 _buildFontDropdown(
                   label: 'Body Font',
                   value: _brandKit.bodyFont,
@@ -470,18 +472,22 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
                 const SizedBox(height: 24),
                 // Typography preview
                 Container(
+                  width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.grey100,
-                    borderRadius: BorderRadius.circular(12),
+                    color: theme.colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Typography Preview',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.grey500,
+                        'TYPOGRAPHY PREVIEW',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          letterSpacing: 1.2,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -489,9 +495,9 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
                         'Heading Example',
                         style: _getSafeFont(
                           _brandKit.headingFont,
-                          fontSize: 20,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.penguinBlack,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -499,8 +505,8 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
                         'Body text example for your posts. This is how your content will look across social platforms.',
                         style: _getSafeFont(
                           _brandKit.bodyFont,
-                          fontSize: 14,
-                          color: AppColors.grey700,
+                          fontSize: 15,
+                          color: theme.colorScheme.onSurfaceVariant,
                           height: 1.5,
                         ),
                       ),
@@ -510,8 +516,9 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
               ],
             ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 48),
+      ],
     );
   }
 
@@ -521,32 +528,45 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
     required List<String> options,
     required ValueChanged<String> onChanged,
   }) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: Theme.of(
-            context,
-          ).textTheme.titleSmall?.copyWith(color: AppColors.grey600),
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: AppColors.iceWhite,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.grey200),
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: value,
               isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down),
+              dropdownColor: theme.colorScheme.surface,
+              icon: Icon(
+                Icons.keyboard_arrow_down,
+                color: theme.colorScheme.primary,
+              ),
               items: options.map((font) {
                 return DropdownMenuItem(
                   value: font,
-                  child: Text(font, style: _getSafeFont(font, fontSize: 14)),
+                  child: Text(
+                    font,
+                    style: _getSafeFont(
+                      font,
+                      fontSize: 14,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
                 );
               }).toList(),
               onChanged: (v) => onChanged(v!),
@@ -558,20 +578,21 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
   }
 
   Widget _buildStep4VoiceHashtags() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppConstants.spacingMd),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Voice section
-          _buildSectionCard(
-            title: 'Brand Voice',
+    final theme = Theme.of(context);
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      children: [
+        AppSection(
+          title: 'Brand Voice',
+          child: AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Select your brand tone:',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 VoiceChips(
@@ -582,10 +603,12 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
                     });
                   },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 Text(
                   'Brand Style:',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 FormalitySlider(
@@ -599,23 +622,30 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          // Hashtags section
-          _buildSectionCard(
-            title: 'Hashtag Groups',
+        ),
+        const SizedBox(height: 24),
+        AppSection(
+          title: 'Hashtag Groups',
+          child: AppCard(
             child: Column(
               children: [
                 if (_brandKit.hashtagGroups.isEmpty)
-                  Container(
+                  Padding(
                     padding: const EdgeInsets.all(24),
                     child: Column(
                       children: [
-                        Icon(Icons.tag, size: 40, color: AppColors.grey300),
-                        const SizedBox(height: 8),
+                        Icon(
+                          Icons.tag,
+                          size: 48,
+                          color: theme.colorScheme.outline,
+                        ),
+                        const SizedBox(height: 12),
                         Text(
                           'No hashtag groups yet',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: AppColors.grey500),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
@@ -635,21 +665,20 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
                       ),
                     );
                   }),
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  onPressed: () => _showHashtagBottomSheet(),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('New Hashtag Group'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.frostPurple,
-                    side: const BorderSide(color: AppColors.frostPurple),
-                  ),
+                const SizedBox(height: 12),
+                AppButton.secondary(
+                  label: 'New Hashtag Group',
+                  icon: Icons.add,
+                  onTap: () => _showHashtagBottomSheet(),
+                  size: ButtonSize.sm,
+                  fullWidth: true,
                 ),
               ],
             ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 48),
+      ],
     );
   }
 
@@ -676,9 +705,13 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
   }
 
   void _deleteHashtagGroup(int index) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: theme.colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Delete Hashtag Group?'),
         content: const Text('This action cannot be undone.'),
         actions: [
@@ -695,7 +728,9 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
               });
               Navigator.pop(context);
             },
-            style: TextButton.styleFrom(foregroundColor: AppColors.sunsetCoral),
+            style: TextButton.styleFrom(
+              foregroundColor: theme.colorScheme.error,
+            ),
             child: const Text('Delete'),
           ),
         ],
@@ -703,41 +738,22 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
     );
   }
 
-  Widget _buildSectionCard({required String title, required Widget child}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppConstants.spacingMd),
-      decoration: BoxDecoration(
-        color: AppColors.iceWhite,
-        borderRadius: BorderRadius.circular(AppConstants.radiusMd),
-        border: Border.all(color: AppColors.grey200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 16),
-          child,
-        ],
-      ),
-    );
-  }
-
   Widget _buildBottomNav() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.all(AppConstants.spacingMd),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.iceWhite,
+        color: theme.colorScheme.surface,
+        border: Border(
+          top: BorderSide(color: theme.colorScheme.outlineVariant),
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.penguinBlack.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
           ),
         ],
       ),
@@ -746,39 +762,19 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
           children: [
             if (_currentStep > 0)
               Expanded(
-                child: OutlinedButton(
-                  onPressed: _previousStep,
-                  child: const Text('Back'),
-                ),
+                child: AppButton.secondary(label: 'Back', onTap: _previousStep),
               ),
             if (_currentStep > 0) const SizedBox(width: 12),
             Expanded(
               flex: 2,
-              child: ElevatedButton(
-                onPressed: _isSaving
-                    ? null
-                    : _currentStep == _stepLabels.length - 1
+              child: AppButton.primary(
+                label: _currentStep == _stepLabels.length - 1
+                    ? 'Save Brand Kit'
+                    : 'Next',
+                isLoading: _isSaving,
+                onTap: _currentStep == _stepLabels.length - 1
                     ? _saveBrandKit
                     : _nextStep,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.arcticBlue,
-                  foregroundColor: AppColors.iceWhite,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: _isSaving
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.iceWhite,
-                        ),
-                      )
-                    : Text(
-                        _currentStep == _stepLabels.length - 1
-                            ? 'Save Brand Kit'
-                            : 'Next',
-                      ),
               ),
             ),
           ],
@@ -787,7 +783,6 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
     );
   }
 
-  /// Safe font getter with fallback to Inter
   TextStyle _getSafeFont(
     String fontFamily, {
     double? fontSize,
@@ -803,8 +798,7 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
         color: color,
         height: height,
       );
-    } catch (_) {
-      // Fallback to Inter if font not found
+    } catch (e) {
       return GoogleFonts.inter(
         fontSize: fontSize,
         fontWeight: fontWeight,

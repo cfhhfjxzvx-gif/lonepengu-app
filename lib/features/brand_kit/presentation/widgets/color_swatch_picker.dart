@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/constants/app_constants.dart';
+import 'package:lone_pengu/core/design/lp_design.dart';
 import '../../domain/brand_kit_model.dart';
 
 /// Color swatch picker widget
@@ -33,37 +32,50 @@ class ColorSwatchPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () => _showColorPicker(context),
       child: AnimatedContainer(
-        duration: AppConstants.shortDuration,
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.iceWhite,
-          borderRadius: BorderRadius.circular(AppConstants.radiusSm),
-          border: Border.all(color: AppColors.grey200),
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.1 : 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
             // Color preview
             AnimatedContainer(
-              duration: AppConstants.shortDuration,
-              width: 40,
-              height: 40,
+              duration: const Duration(milliseconds: 200),
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 color: selectedColor,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.grey300, width: 1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1.5,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: selectedColor.withValues(alpha: 0.4),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    color: selectedColor.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             // Label and hex value
             Expanded(
               child: Column(
@@ -71,22 +83,28 @@ class ColorSwatchPicker extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.penguinBlack,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     selectedColor.toHex(),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.grey500,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                       fontFamily: 'monospace',
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.edit_outlined, size: 18, color: AppColors.grey400),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ],
         ),
       ),
@@ -94,6 +112,7 @@ class ColorSwatchPicker extends StatelessWidget {
   }
 
   void _showColorPicker(BuildContext context) {
+    final theme = Theme.of(context);
     final hexController = TextEditingController(text: selectedColor.toHex());
 
     showModalBottomSheet(
@@ -101,11 +120,16 @@ class ColorSwatchPicker extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: AppColors.iceWhite,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        padding: const EdgeInsets.all(AppConstants.spacingLg),
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 12,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,26 +140,29 @@ class ColorSwatchPicker extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.grey300,
+                  color: theme.colorScheme.outlineVariant,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             // Title
             Text(
               'Choose $label',
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             // Preset colors grid
             Text(
               'Preset Colors',
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(color: AppColors.grey600),
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Wrap(
               spacing: 12,
               runSpacing: 12,
@@ -147,42 +174,47 @@ class ColorSwatchPicker extends StatelessWidget {
                     Navigator.pop(context);
                   },
                   child: AnimatedContainer(
-                    duration: AppConstants.shortDuration,
-                    width: 48,
-                    height: 48,
+                    duration: const Duration(milliseconds: 200),
+                    width: 52,
+                    height: 52,
                     decoration: BoxDecoration(
                       color: color,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isSelected
-                            ? AppColors.penguinBlack
-                            : Colors.transparent,
-                        width: 3,
+                            ? theme.colorScheme.primary
+                            : Colors.white.withOpacity(0.1),
+                        width: isSelected ? 3 : 1,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: color.withValues(alpha: 0.4),
+                          color: color.withOpacity(isSelected ? 0.4 : 0.2),
                           blurRadius: isSelected ? 12 : 6,
-                          offset: const Offset(0, 2),
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
                     child: isSelected
-                        ? const Icon(Icons.check, color: Colors.white, size: 24)
+                        ? Icon(
+                            Icons.check_rounded,
+                            color: theme.colorScheme.onPrimary,
+                            size: 28,
+                          )
                         : null,
                   ),
                 );
               }).toList(),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             // Hex input
             Text(
               'Custom Color (Hex)',
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(color: AppColors.grey600),
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -191,12 +223,15 @@ class ColorSwatchPicker extends StatelessWidget {
                     decoration: InputDecoration(
                       hintText: '#1E3A5F',
                       prefixIcon: Container(
-                        margin: const EdgeInsets.all(8),
+                        margin: const EdgeInsets.all(12),
                         width: 24,
                         height: 24,
                         decoration: BoxDecoration(
                           color: selectedColor,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: theme.colorScheme.outlineVariant,
+                          ),
                         ),
                       ),
                     ),
@@ -212,26 +247,31 @@ class ColorSwatchPicker extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: () {
-                    final hex = hexController.text;
-                    if (hex.startsWith('#') && hex.length == 7) {
-                      try {
-                        final color = HexColor.fromHex(hex);
-                        onColorChanged(color);
-                        Navigator.pop(context);
-                      } catch (_) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Invalid hex color')),
-                        );
+                SizedBox(
+                  height: 56,
+                  child: AppButton.primary(
+                    label: 'Apply',
+                    onTap: () {
+                      final hex = hexController.text;
+                      if ((hex.startsWith('#') && hex.length == 7) ||
+                          hex.length == 6) {
+                        try {
+                          final color = HexColor.fromHex(
+                            hex.startsWith('#') ? hex : '#$hex',
+                          );
+                          onColorChanged(color);
+                          Navigator.pop(context);
+                        } catch (_) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Invalid hex color')),
+                          );
+                        }
                       }
-                    }
-                  },
-                  child: const Text('Apply'),
+                    },
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
           ],
         ),
       ),

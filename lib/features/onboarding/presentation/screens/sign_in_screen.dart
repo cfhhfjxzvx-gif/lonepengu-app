@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/design/lp_design.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/app_logo.dart';
-import '../../../../core/widgets/primary_button.dart';
-import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/responsive_builder.dart';
-
-import '../../../../core/widgets/app_background.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -67,151 +63,123 @@ class _SignInScreenState extends State<SignInScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Password reset coming soon!'),
-        backgroundColor: AppColors.arcticBlue,
+        backgroundColor: LPColors.primary,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppConstants.radiusSm),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: LPRadius.smBorder),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
+    return AppScaffold(
+      useSafeArea: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back_rounded),
-          color: AppColors.penguinBlack,
+        leading: AppIconButton(
+          icon: Icons.arrow_back_rounded,
+          onTap: () => context.pop(),
         ),
       ),
-      body: AppBackground(
-        child: ResponsiveBuilder(
-          builder: (context, deviceType) {
-            return Center(
-              child: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: AppConstants.maxContentWidth,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppConstants.spacingLg),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: ResponsiveBuilder(
+        builder: (context, deviceType) {
+          return Center(
+            child: SingleChildScrollView(
+              padding: LPSpacing.page,
+              child: AppMaxWidth(
+                maxWidth: 400,
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Center(child: AppLogo(size: 90, borderRadius: 16)),
+                      Gap.xl,
+                      Text(
+                        'Welcome back',
+                        style: LPText.hLG,
+                        textAlign: TextAlign.center,
+                      ),
+                      Gap.xs,
+                      Text(
+                        'Sign in to continue managing your content',
+                        style: LPText.bodyMD,
+                        textAlign: TextAlign.center,
+                      ),
+                      Gap.xxl,
+                      AppTextField(
+                        controller: _emailController,
+                        label: 'Email',
+                        hint: 'Enter your email',
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                        validator: _validateEmail,
+                      ),
+                      Gap.md,
+                      AppTextField(
+                        controller: _passwordController,
+                        label: 'Password',
+                        hint: 'Enter your password',
+                        obscureText: _obscurePassword,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _handleSignIn(),
+                        prefixIcon: const Icon(
+                          Icons.lock_outline_rounded,
+                          size: 20,
+                        ),
+                        suffixIcon: AppIconButton(
+                          size: 32,
+                          onTap: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
+                          icon: _obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                        ),
+                        validator: _validatePassword,
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _handleForgotPassword,
+                          child: Text(
+                            'Forgot password?',
+                            style: LPText.labelSM.copyWith(
+                              color: LPColors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Gap.lg,
+                      AppButton.primary(
+                        label: 'Sign In',
+                        isLoading: _isLoading,
+                        onTap: _handleSignIn,
+                        fullWidth: true,
+                      ),
+                      Gap.xl,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Centered Logo - 90px
-                          const Center(
-                            child: AppLogo(size: 90, borderRadius: 14),
-                          ),
-                          SizedBox(height: AppConstants.spacingXl),
-
-                          // Title
-                          Text(
-                            'Welcome back',
-                            style: Theme.of(context).textTheme.headlineLarge,
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: AppConstants.spacingSm),
-                          Text(
-                            'Sign in to continue managing your content',
-                            style: Theme.of(context).textTheme.bodyLarge,
-                            textAlign: TextAlign.center,
-                          ),
-
-                          SizedBox(height: AppConstants.spacingXl),
-
-                          // Email Field
-                          CustomTextField(
-                            controller: _emailController,
-                            labelText: 'Email',
-                            hintText: 'Enter your email',
-                            keyboardType: TextInputType.emailAddress,
-                            textInputAction: TextInputAction.next,
-                            prefixIcon: const Icon(Icons.email_outlined),
-                            validator: _validateEmail,
-                          ),
-                          SizedBox(height: AppConstants.spacingMd),
-
-                          // Password Field
-                          CustomTextField(
-                            controller: _passwordController,
-                            labelText: 'Password',
-                            hintText: 'Enter your password',
-                            obscureText: _obscurePassword,
-                            textInputAction: TextInputAction.done,
-                            prefixIcon: const Icon(Icons.lock_outline_rounded),
-                            suffixIcon: IconButton(
-                              onPressed: () => setState(
-                                () => _obscurePassword = !_obscurePassword,
-                              ),
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
+                          Text("Don't have an account? ", style: LPText.bodySM),
+                          TextButton(
+                            onPressed: () => context.push(AppRoutes.signUp),
+                            child: Text(
+                              'Create account',
+                              style: LPText.labelSM.copyWith(
+                                color: LPColors.primary,
                               ),
                             ),
-                            validator: _validatePassword,
-                            onSubmitted: (_) => _handleSignIn(),
-                          ),
-
-                          SizedBox(height: AppConstants.spacingSm),
-
-                          // Forgot Password Link
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: _handleForgotPassword,
-                              child: Text(
-                                'Forgot password?',
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(
-                                      color: AppColors.arcticBlue,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                              ),
-                            ),
-                          ),
-
-                          SizedBox(height: AppConstants.spacingLg),
-
-                          // Sign In Button
-                          PrimaryButton(
-                            text: 'Sign In',
-                            isLoading: _isLoading,
-                            onPressed: _handleSignIn,
-                          ),
-
-                          SizedBox(height: AppConstants.spacingXl),
-
-                          // Create Account Link
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Don't have an account? ",
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                              TextButton(
-                                onPressed: () => context.push(AppRoutes.signUp),
-                                child: const Text('Create new account'),
-                              ),
-                            ],
                           ),
                         ],
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

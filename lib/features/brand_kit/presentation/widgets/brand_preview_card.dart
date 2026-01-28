@@ -1,8 +1,8 @@
+import 'package:lone_pengu/core/design/lp_design.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../domain/brand_kit_model.dart';
 
@@ -14,16 +14,21 @@ class BrandPreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppConstants.spacingMd),
-      padding: const EdgeInsets.all(AppConstants.spacingMd),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.iceWhite,
-        borderRadius: BorderRadius.circular(AppConstants.radiusMd),
-        border: Border.all(color: AppColors.grey200),
+        color: isDark
+            ? theme.colorScheme.surfaceContainerLow
+            : theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: AppColors.penguinBlack.withValues(alpha: 0.08),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.08),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -36,7 +41,7 @@ class BrandPreviewCard extends StatelessWidget {
           Row(
             children: [
               // Logo/Avatar
-              _buildAvatar(),
+              _buildAvatar(theme),
               const SizedBox(width: 12),
               // Brand name and handle
               Expanded(
@@ -47,62 +52,72 @@ class BrandPreviewCard extends StatelessWidget {
                       brandKit.businessName.isEmpty
                           ? 'Your Brand'
                           : brandKit.businessName,
-                      style: _getHeadingStyle(context, 14),
+                      style: _getHeadingStyle(context, 15),
                     ),
                     Text(
                       '@${_getHandle()}',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: AppColors.grey500),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
               ),
               // Preview badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: brandKit.colors.primary.withValues(alpha: 0.1),
+                  color: brandKit.colors.primary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: brandKit.colors.primary.withOpacity(0.2),
+                  ),
                 ),
                 child: Text(
-                  'Preview',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  'Live Preview',
+                  style: theme.textTheme.labelSmall?.copyWith(
                     color: brandKit.colors.primary,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           // Post caption
-          Text(_getExampleCaption(), style: _getBodyStyle(context, 13)),
-          const SizedBox(height: 8),
+          Text(_getExampleCaption(), style: _getBodyStyle(context, 14)),
+          const SizedBox(height: 10),
           // Hashtags
           Wrap(
-            spacing: 6,
+            spacing: 8,
             children: _getPreviewHashtags()
                 .map(
                   (tag) => Text(
                     '#$tag',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    style: theme.textTheme.bodySmall?.copyWith(
                       color: brandKit.colors.secondary,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 )
                 .toList(),
           ),
+          const SizedBox(height: 16),
+          Divider(height: 1, color: theme.colorScheme.outlineVariant),
           const SizedBox(height: 12),
           // Color swatches
           Row(
             children: [
-              _buildColorDot(brandKit.colors.primary, 'Primary'),
-              const SizedBox(width: 8),
-              _buildColorDot(brandKit.colors.secondary, 'Secondary'),
-              const SizedBox(width: 8),
-              _buildColorDot(brandKit.colors.accent, 'Accent'),
+              _buildColorDot(theme, brandKit.colors.primary, 'Primary'),
+              const SizedBox(width: 12),
+              _buildColorDot(theme, brandKit.colors.secondary, 'Secondary'),
+              const SizedBox(width: 12),
+              _buildColorDot(theme, brandKit.colors.accent, 'Accent'),
             ],
           ),
         ],
@@ -110,48 +125,54 @@ class BrandPreviewCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar() {
-    // Check if we have logo bytes (Web) or path (Mobile)
+  Widget _buildAvatar(ThemeData theme) {
     if (brandKit.logoBytes != null && brandKit.logoBytes!.isNotEmpty) {
-      // Web: Use Image.memory
       return ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: Image.memory(
           brandKit.logoBytes!,
-          width: 40,
-          height: 40,
+          width: 44,
+          height: 44,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildDefaultAvatar(),
+          errorBuilder: (_, __, ___) => _buildDefaultAvatar(theme),
         ),
       );
     } else if (!kIsWeb &&
         brandKit.logoPath != null &&
         brandKit.logoPath!.isNotEmpty) {
-      // Mobile/Desktop: Use Image.file
       return ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: Image.file(
           File(brandKit.logoPath!),
-          width: 40,
-          height: 40,
+          width: 44,
+          height: 44,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildDefaultAvatar(),
+          errorBuilder: (_, __, ___) => _buildDefaultAvatar(theme),
         ),
       );
     }
 
-    return _buildDefaultAvatar();
+    return _buildDefaultAvatar(theme);
   }
 
-  Widget _buildDefaultAvatar() {
+  Widget _buildDefaultAvatar(ThemeData theme) {
     return Container(
-      width: 40,
-      height: 40,
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
         gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
           colors: [brandKit.colors.primary, brandKit.colors.secondary],
         ),
         borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: brandKit.colors.primary.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Center(
         child: Text(
@@ -159,32 +180,46 @@ class BrandPreviewCard extends StatelessWidget {
               ? 'B'
               : brandKit.businessName[0].toUpperCase(),
           style: const TextStyle(
-            color: AppColors.iceWhite,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
-            fontSize: 16,
+            fontSize: 18,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildColorDot(Color color, String label) {
+  Widget _buildColorDot(ThemeData theme, Color color, String label) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 12,
-          height: 12,
+          width: 14,
+          height: 14,
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.grey200, width: 1),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.2),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
           ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 6),
         Text(
           label,
-          style: const TextStyle(fontSize: 10, color: AppColors.grey500),
+          style: theme.textTheme.labelSmall?.copyWith(
+            fontSize: 11,
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );
@@ -223,39 +258,37 @@ class BrandPreviewCard extends StatelessWidget {
   }
 
   TextStyle _getHeadingStyle(BuildContext context, double size) {
+    final theme = Theme.of(context);
     try {
       return GoogleFonts.getFont(
         brandKit.headingFont,
         fontSize: size,
-        fontWeight: FontWeight.w600,
-        color: AppColors.penguinBlack,
+        fontWeight: FontWeight.bold,
+        color: theme.colorScheme.onSurface,
       );
     } catch (_) {
-      // Fallback to Inter if font not found
-      return GoogleFonts.inter(
+      return theme.textTheme.titleMedium!.copyWith(
         fontSize: size,
-        fontWeight: FontWeight.w600,
-        color: AppColors.penguinBlack,
+        fontWeight: FontWeight.bold,
       );
     }
   }
 
   TextStyle _getBodyStyle(BuildContext context, double size) {
+    final theme = Theme.of(context);
     try {
       return GoogleFonts.getFont(
         brandKit.bodyFont,
         fontSize: size,
         fontWeight: FontWeight.normal,
-        color: AppColors.grey700,
-        height: 1.4,
+        color: theme.colorScheme.onSurfaceVariant,
+        height: 1.5,
       );
     } catch (_) {
-      // Fallback to Inter if font not found
-      return GoogleFonts.inter(
+      return theme.textTheme.bodyMedium!.copyWith(
         fontSize: size,
-        fontWeight: FontWeight.normal,
-        color: AppColors.grey700,
-        height: 1.4,
+        color: theme.colorScheme.onSurfaceVariant,
+        height: 1.5,
       );
     }
   }

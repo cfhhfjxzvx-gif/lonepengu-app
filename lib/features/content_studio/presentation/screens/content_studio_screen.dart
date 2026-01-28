@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/design/lp_design.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/responsive_builder.dart';
-import '../../../../core/widgets/app_background.dart';
 import '../../../brand_kit/data/brand_kit_storage.dart';
 import '../../../brand_kit/domain/brand_kit_model.dart';
 import '../../data/content_models.dart';
@@ -77,7 +76,6 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
     if (mounted && kit != null) {
       setState(() {
         _brandKit = kit;
-        // Apply brand voice as default tone
         final brandTone = kit.voiceTone.toLowerCase();
         for (final tone in ContentTone.values) {
           if (tone.displayName.toLowerCase() == brandTone) {
@@ -122,9 +120,9 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
   Future<void> _generate() async {
     if (_promptController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Please enter a description/prompt first'),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -132,9 +130,9 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
 
     if (_selectedPlatforms.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Please select at least one platform'),
-          backgroundColor: AppColors.sunsetCoral,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -291,23 +289,26 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
     final success = await DraftStorage.saveDraft(draft);
 
     if (mounted) {
+      final theme = Theme.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
               Icon(
                 success ? Icons.check_circle : Icons.error,
-                color: AppColors.iceWhite,
+                color: theme.colorScheme.onInverseSurface,
                 size: 18,
               ),
-              const SizedBox(width: 8),
+              Gap(width: LPSpacing.xs),
               Text(success ? 'Saved to drafts!' : 'Failed to save'),
             ],
           ),
           backgroundColor: success
-              ? AppColors.auroraTeal
-              : AppColors.sunsetCoral,
-          behavior: SnackBarBehavior.floating,
+              ? theme.colorScheme.primaryContainer
+              : theme.colorScheme.errorContainer,
+          // Use onContainer colors for text if possible, but SnackBar defaults might handle it or we need to be explicit.
+          // Actually standard SnackBar uses inverse surface usually.
+          // Let's stick to standard or use explicit colors.
         ),
       );
     }
@@ -315,90 +316,60 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
+    final theme = Theme.of(context);
+    return AppScaffold(
+      useSafeArea: true,
       appBar: AppBar(
-        backgroundColor: AppColors.iceWhite,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back_rounded),
-          color: AppColors.penguinBlack,
+        titleSpacing: 0,
+        leading: AppIconButton(
+          icon: Icons.arrow_back_rounded,
+          onTap: () => context.pop(),
         ),
         title: Row(
           children: [
             Text(
               'Content Studio',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(width: 12),
+            Gap(width: LPSpacing.sm),
             if (_brandKit != null)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.auroraTeal.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.palette,
-                      size: 14,
-                      color: AppColors.auroraTeal,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _brandKit!.businessName,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.auroraTeal,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
+              AppPill(
+                label: _brandKit!.businessName,
+                icon: Icons.palette,
+                backgroundColor: theme.colorScheme.secondaryContainer,
+                textColor: theme.colorScheme.onSecondaryContainer,
+                isSmall: true,
+                onTap: () => context.push(AppRoutes.brandKit),
               ),
           ],
         ),
         actions: [
-          IconButton(
-            onPressed: () => context.push(AppRoutes.drafts),
-            icon: const Icon(Icons.folder_outlined),
-            color: AppColors.grey600,
-            tooltip: 'Drafts',
+          AppIconButton(
+            icon: Icons.folder_outlined,
+            onTap: () => context.push(AppRoutes.drafts),
           ),
-          IconButton(
-            onPressed: () => context.push(AppRoutes.brandKit),
-            icon: const Icon(Icons.tune),
-            color: AppColors.grey600,
-            tooltip: 'Brand Kit',
+          const Gap(width: LPSpacing.xs),
+          AppIconButton(
+            icon: Icons.tune,
+            onTap: () => context.push(AppRoutes.brandKit),
           ),
-          const SizedBox(width: 8),
+          const Gap(width: LPSpacing.sm),
         ],
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          labelColor: AppColors.arcticBlue,
-          unselectedLabelColor: AppColors.grey500,
-          indicatorColor: AppColors.arcticBlue,
-          indicatorWeight: 3,
-          labelStyle: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-          ),
+          labelColor: theme.colorScheme.primary,
+          unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+          indicatorColor: theme.colorScheme.primary,
           tabs: ContentMode.values.map((mode) {
             return Tab(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(mode.icon),
-                  const SizedBox(width: 4),
+                  const Gap(width: LPSpacing.xxs),
                   Text(mode.displayName),
                 ],
               ),
@@ -406,48 +377,43 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
           }).toList(),
         ),
       ),
-      body: AppBackground(
-        useSafeArea: false, // Handled by TabBar/AppBar layout
-        child: ResponsiveBuilder(
-          builder: (context, deviceType) {
-            final isWide = deviceType != DeviceType.mobile;
+      body: ResponsiveBuilder(
+        builder: (context, deviceType) {
+          final isWide = deviceType != DeviceType.mobile;
 
-            if (isWide) {
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Left: Prompt card
-                  Expanded(
-                    flex: 5,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(AppConstants.spacingMd),
-                      child: _buildPromptCard(),
-                    ),
+          if (isWide) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 5,
+                  child: SingleChildScrollView(
+                    padding: LPSpacing.page,
+                    child: _buildPromptCard(),
                   ),
-                  // Right: Output area
-                  Expanded(
-                    flex: 4,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(AppConstants.spacingMd),
-                      child: _buildOutputArea(),
-                    ),
+                ),
+                Expanded(
+                  flex: 4,
+                  child: SingleChildScrollView(
+                    padding: LPSpacing.page,
+                    child: _buildOutputArea(),
                   ),
-                ],
-              );
-            }
-
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(AppConstants.spacingMd),
-              child: Column(
-                children: [
-                  _buildPromptCard(),
-                  const SizedBox(height: 16),
-                  _buildOutputArea(),
-                ],
-              ),
+                ),
+              ],
             );
-          },
-        ),
+          }
+
+          return SingleChildScrollView(
+            padding: LPSpacing.page,
+            child: Column(
+              children: [
+                _buildPromptCard(),
+                const Gap(height: LPSpacing.md),
+                _buildOutputArea(),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -539,37 +505,27 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
   }
 
   Widget _buildErrorState() {
-    return Container(
-      padding: const EdgeInsets.all(AppConstants.spacingLg),
-      decoration: BoxDecoration(
-        color: AppColors.iceWhite,
-        borderRadius: BorderRadius.circular(AppConstants.radiusMd),
-        border: Border.all(color: AppColors.sunsetCoral.withValues(alpha: 0.3)),
-      ),
+    final theme = Theme.of(context);
+    return AppCard.outlined(
+      borderColor: theme.colorScheme.error.withOpacity(0.3),
       child: Column(
         children: [
-          const Icon(
-            Icons.error_outline,
-            size: 48,
-            color: AppColors.sunsetCoral,
-          ),
-          const SizedBox(height: 12),
+          Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
+          Gap(height: LPSpacing.sm),
           Text(
             _errorMessage ?? 'Something went wrong',
             textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: AppColors.grey600),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: _generate,
-            icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Try Again'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.sunsetCoral,
-              foregroundColor: AppColors.iceWhite,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
+          ),
+          Gap(height: LPSpacing.md),
+          AppButton.custom(
+            label: 'Try Again',
+            icon: Icons.refresh,
+            onTap: _generate,
+            size: ButtonSize.sm,
+            color: theme.colorScheme.error,
           ),
         ],
       ),
@@ -580,43 +536,28 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header with actions
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               'Generated Content',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             Row(
               children: [
-                TextButton.icon(
-                  onPressed: _generate,
-                  icon: const Icon(Icons.refresh, size: 16),
-                  label: const Text('Regenerate'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.grey600,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: _saveToDrafts,
-                  icon: const Icon(Icons.save_alt, size: 16),
-                  label: const Text('Save Draft'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.auroraTeal,
-                    foregroundColor: AppColors.iceWhite,
-                  ),
+                AppIconButton(icon: Icons.refresh, onTap: _generate, size: 32),
+                const Gap(width: LPSpacing.xs),
+                AppButton.teal(
+                  label: 'Save Draft',
+                  icon: Icons.save_alt,
+                  onTap: _saveToDrafts,
+                  size: ButtonSize.sm,
                 ),
               ],
             ),
           ],
         ),
-        const SizedBox(height: 16),
-
-        // Mode-specific output
+        const Gap(height: LPSpacing.md),
         _buildModeOutput(),
       ],
     );
@@ -649,9 +590,9 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
               imageUrl: _generatedContent!.imageUrl,
               onDownload: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Download feature coming soon!'),
-                    backgroundColor: AppColors.frostPurple,
+                    backgroundColor: LPColors.accent,
                   ),
                 );
               },
@@ -664,7 +605,6 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
                   return;
                 }
 
-                // Premium UX: Haptic feedback
                 HapticFeedback.mediumImpact();
 
                 final priorityPlatform =
@@ -697,8 +637,7 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
                 );
               },
             ),
-            const SizedBox(height: 16),
-            // Also show caption variants
+            const Gap(height: LPSpacing.md),
             if (_generatedContent!.captionVariants.isNotEmpty)
               CaptionOutputCard(
                 variant: _generatedContent!.captionVariants.first,
@@ -711,28 +650,18 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Carousel slides
             if (_generatedContent!.carouselSlides != null)
               ..._generatedContent!.carouselSlides!.map((slide) {
                 return CarouselSlideCard(slide: slide);
               }),
-            const SizedBox(height: 12),
-            // Action button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => context.push(AppRoutes.editor),
-                icon: const Icon(Icons.edit, size: 18),
-                label: const Text('Convert to Editor Slides'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.sunsetCoral,
-                  foregroundColor: AppColors.iceWhite,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
+            const Gap(height: LPSpacing.sm),
+            AppButton.danger(
+              label: 'Convert to Editor Slides',
+              icon: Icons.edit,
+              onTap: () => context.push(AppRoutes.editor),
+              fullWidth: true,
             ),
-            const SizedBox(height: 16),
-            // Caption suggestion
+            const Gap(height: LPSpacing.md),
             if (_generatedContent!.captionVariants.isNotEmpty)
               CaptionOutputCard(
                 variant: _generatedContent!.captionVariants.first,
@@ -750,15 +679,15 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
               videoUrl: _generatedContent!.videoUrl,
               onDownload: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Download feature coming soon!'),
-                    backgroundColor: AppColors.frostPurple,
+                    backgroundColor: LPColors.accent,
                   ),
                 );
               },
               onUseInScheduler: () => context.push(AppRoutes.scheduler),
             ),
-            const SizedBox(height: 16),
+            const Gap(height: LPSpacing.md),
             if (_generatedContent!.captionVariants.isNotEmpty)
               CaptionOutputCard(
                 variant: _generatedContent!.captionVariants.first,

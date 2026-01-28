@@ -1,5 +1,5 @@
+import 'package:lone_pengu/core/design/lp_design.dart';
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../constants/app_constants.dart';
 
 /// Secondary outlined button
@@ -26,7 +26,7 @@ class SecondaryButton extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(AppConstants.radiusMd),
-        border: Border.all(color: AppColors.arcticBlue, width: 1.5),
+        border: Border.all(color: LPColors.primary, width: 1.5),
       ),
       child: Material(
         color: Colors.transparent,
@@ -39,13 +39,13 @@ class SecondaryButton extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (icon != null) ...[
-                  Icon(icon, color: AppColors.arcticBlue, size: 20),
-                  const SizedBox(width: 8),
+                  Icon(icon, color: LPColors.primary, size: 20),
+                  SizedBox(width: 8),
                 ],
                 Text(
                   text,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: AppColors.arcticBlue,
+                    color: LPColors.primary,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),

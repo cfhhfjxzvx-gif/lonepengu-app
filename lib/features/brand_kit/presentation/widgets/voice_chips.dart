@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../../domain/brand_kit_model.dart';
 
 /// Voice tone selection chips
@@ -23,7 +21,7 @@ class VoiceChips extends StatelessWidget {
       case 'Bold':
         return Icons.flash_on_outlined;
       case 'Minimal':
-        return Icons.space_bar;
+        return Icons.space_bar_rounded;
       case 'Funny':
         return Icons.sentiment_very_satisfied_outlined;
       case 'Luxury':
@@ -33,52 +31,60 @@ class VoiceChips extends StatelessWidget {
     }
   }
 
-  Color _getColorForTone(String tone) {
+  Color _getColorForTone(BuildContext context, String tone) {
+    final theme = Theme.of(context);
     switch (tone) {
       case 'Professional':
-        return AppColors.arcticBlue;
+        return theme.colorScheme.primary;
       case 'Friendly':
-        return AppColors.auroraTeal;
+        return theme.colorScheme.tertiary;
       case 'Bold':
-        return AppColors.sunsetCoral;
+        return theme.colorScheme.error;
       case 'Minimal':
-        return AppColors.grey600;
+        return theme.colorScheme.onSurfaceVariant;
       case 'Funny':
         return const Color(0xFFF59E0B);
       case 'Luxury':
-        return AppColors.frostPurple;
+        return theme.colorScheme.secondary;
       default:
-        return AppColors.arcticBlue;
+        return theme.colorScheme.primary;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Wrap(
-      spacing: 10,
-      runSpacing: 10,
+      spacing: 12,
+      runSpacing: 12,
       children: VoiceTones.all.map((tone) {
         final isSelected = tone == selectedTone;
-        final color = _getColorForTone(tone);
+        final color = _getColorForTone(context, tone);
 
         return GestureDetector(
           onTap: () => onToneChanged(tone),
           child: AnimatedContainer(
-            duration: AppConstants.shortDuration,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isSelected ? color : AppColors.iceWhite,
+              color: isSelected
+                  ? color
+                  : (isDark
+                        ? theme.colorScheme.surfaceContainerLow
+                        : theme.colorScheme.surface),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isSelected ? color : AppColors.grey300,
-                width: isSelected ? 2 : 1,
+                color: isSelected ? color : theme.colorScheme.outlineVariant,
+                width: isSelected ? 2 : 1.5,
               ),
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: color.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                        color: color.withOpacity(0.35),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ]
                   : null,
@@ -88,16 +94,17 @@ class VoiceChips extends StatelessWidget {
               children: [
                 Icon(
                   _getIconForTone(tone),
-                  size: 18,
-                  color: isSelected ? AppColors.iceWhite : color,
+                  size: 20,
+                  color: isSelected ? Colors.white : color,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Text(
                   tone,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected ? AppColors.iceWhite : AppColors.grey700,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    color: isSelected
+                        ? Colors.white
+                        : theme.colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -122,6 +129,7 @@ class FormalitySlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -130,29 +138,39 @@ class FormalitySlider extends StatelessWidget {
           children: [
             Text(
               'Formal',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: value < 0.5 ? AppColors.arcticBlue : AppColors.grey500,
-                fontWeight: value < 0.5 ? FontWeight.w600 : FontWeight.normal,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: value < 0.5
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurfaceVariant,
+                fontWeight: value < 0.5 ? FontWeight.bold : FontWeight.w500,
               ),
             ),
             Text(
               'Casual',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: value > 0.5 ? AppColors.auroraTeal : AppColors.grey500,
-                fontWeight: value > 0.5 ? FontWeight.w600 : FontWeight.normal,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: value > 0.5
+                    ? theme.colorScheme.tertiary
+                    : theme.colorScheme.onSurfaceVariant,
+                fontWeight: value > 0.5 ? FontWeight.bold : FontWeight.w500,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
-            activeTrackColor: AppColors.arcticBlue,
-            inactiveTrackColor: AppColors.grey200,
-            thumbColor: AppColors.arcticBlue,
-            overlayColor: AppColors.arcticBlue.withValues(alpha: 0.2),
+            activeTrackColor: theme.colorScheme.primary,
+            inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
+            thumbColor: theme.colorScheme.primary,
+            overlayColor: theme.colorScheme.primary.withOpacity(0.12),
             trackHeight: 6,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
+            valueIndicatorShape: const RectangularSliderValueIndicatorShape(),
+            valueIndicatorColor: theme.colorScheme.primary,
+            valueIndicatorTextStyle: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           child: Slider(value: value, onChanged: onChanged, min: 0, max: 1),
         ),

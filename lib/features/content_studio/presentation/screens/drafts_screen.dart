@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/design/lp_design.dart';
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/widgets/responsive_builder.dart';
 import '../../data/content_models.dart';
 import '../../data/draft_storage.dart';
-
-import '../../../../core/widgets/app_background.dart';
 
 class DraftsScreen extends StatefulWidget {
   const DraftsScreen({super.key});
@@ -50,12 +47,10 @@ class _DraftsScreenState extends State<DraftsScreen> {
   void _applyFilters() {
     List<ContentDraft> result = List.from(_allDrafts);
 
-    // Filter by mode
     if (_filterMode != null) {
       result = result.where((d) => d.mode == _filterMode).toList();
     }
 
-    // Filter by search
     final query = _searchController.text.toLowerCase();
     if (query.isNotEmpty) {
       result = result.where((d) {
@@ -65,7 +60,6 @@ class _DraftsScreenState extends State<DraftsScreen> {
       }).toList();
     }
 
-    // Sort
     result.sort(
       (a, b) => _sortNewest
           ? b.createdAt.compareTo(a.createdAt)
@@ -86,10 +80,11 @@ class _DraftsScreenState extends State<DraftsScreen> {
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.sunsetCoral),
-            child: const Text('Delete'),
+          AppButton.custom(
+            label: 'Delete',
+            onTap: () => Navigator.pop(context, true),
+            size: ButtonSize.sm,
+            color: Theme.of(context).colorScheme.error,
           ),
         ],
       ),
@@ -100,9 +95,10 @@ class _DraftsScreenState extends State<DraftsScreen> {
       await _loadDrafts();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Draft deleted'),
-            backgroundColor: AppColors.grey600,
+          SnackBar(
+            content: const Text('Draft deleted'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: LPRadius.smBorder),
           ),
         );
       }
@@ -111,108 +107,85 @@ class _DraftsScreenState extends State<DraftsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
+    return AppScaffold(
+      useSafeArea: true,
       appBar: AppBar(
-        backgroundColor: AppColors.iceWhite,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back_rounded),
-          color: AppColors.penguinBlack,
-        ),
-        title: Text(
-          'Drafts',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+        title: const Text('Drafts'),
+        leading: AppIconButton(
+          icon: Icons.arrow_back_rounded,
+          onTap: () => context.pop(),
         ),
         actions: [
-          // Sort toggle
-          IconButton(
-            onPressed: () {
+          AppIconButton(
+            onTap: () {
               setState(() {
                 _sortNewest = !_sortNewest;
                 _applyFilters();
               });
             },
-            icon: Icon(
-              _sortNewest ? Icons.arrow_downward : Icons.arrow_upward,
-              size: 20,
-            ),
-            color: AppColors.grey600,
-            tooltip: _sortNewest ? 'Newest first' : 'Oldest first',
+            icon: _sortNewest ? Icons.arrow_downward : Icons.arrow_upward,
           ),
-          const SizedBox(width: 8),
+          Gap(width: LPSpacing.sm),
         ],
       ),
-      body: AppBackground(
-        useSafeArea: false,
-        child: ResponsiveBuilder(
-          builder: (context, deviceType) {
-            return Column(
+      body: Column(
+        children: [
+          Container(
+            color: Theme.of(context).colorScheme.surface,
+            padding: LPSpacing.page,
+            child: Column(
               children: [
-                // Search and filters
-                Container(
-                  color: AppColors.iceWhite,
-                  padding: const EdgeInsets.all(AppConstants.spacingMd),
-                  child: Column(
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search drafts...',
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    filled: true,
+                    fillColor: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: LPSpacing.md,
+                      vertical: LPSpacing.sm,
+                    ),
+                  ),
+                  onChanged: (_) {
+                    setState(() => _applyFilters());
+                  },
+                ),
+                const Gap(height: LPSpacing.sm),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
                     children: [
-                      // Search bar
-                      TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: 'Search drafts...',
-                          prefixIcon: const Icon(Icons.search, size: 20),
-                          filled: true,
-                          fillColor: AppColors.grey100,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                        ),
-                        onChanged: (_) {
-                          setState(() => _applyFilters());
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      // Filter chips
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _buildFilterChip(null, 'All'),
-                            ...ContentMode.values.map((mode) {
-                              return _buildFilterChip(mode, mode.displayName);
-                            }),
-                          ],
-                        ),
-                      ),
+                      _buildFilterChip(null, 'All'),
+                      ...ContentMode.values.map((mode) {
+                        return _buildFilterChip(mode, mode.displayName);
+                      }),
                     ],
                   ),
                 ),
-                // Drafts list
-                Expanded(
-                  child: _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : _filteredDrafts.isEmpty
-                      ? _buildEmptyState()
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(AppConstants.spacingMd),
-                          itemCount: _filteredDrafts.length,
-                          itemBuilder: (context, index) {
-                            return _buildDraftCard(_filteredDrafts[index]);
-                          },
-                        ),
-                ),
               ],
-            );
-          },
-        ),
+            ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const AppLoading()
+                : _filteredDrafts.isEmpty
+                ? _buildEmptyState()
+                : ListView.builder(
+                    padding: LPSpacing.page,
+                    itemCount: _filteredDrafts.length,
+                    itemBuilder: (context, index) {
+                      return _buildDraftCard(_filteredDrafts[index]);
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -220,39 +193,25 @@ class _DraftsScreenState extends State<DraftsScreen> {
   Widget _buildFilterChip(ContentMode? mode, String label) {
     final isSelected = _filterMode == mode;
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: GestureDetector(
-        onTap: () {
+      padding: const EdgeInsets.only(right: LPSpacing.xs),
+      child: FilterChip(
+        selected: isSelected,
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (mode != null) ...[
+              Text(mode.icon, style: const TextStyle(fontSize: 12)),
+              const Gap(width: LPSpacing.xxs),
+            ],
+            Text(label),
+          ],
+        ),
+        onSelected: (val) {
           setState(() {
-            _filterMode = mode;
+            _filterMode = val ? mode : null;
             _applyFilters();
           });
         },
-        child: AnimatedContainer(
-          duration: AppConstants.shortDuration,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.arcticBlue : AppColors.grey100,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (mode != null) ...[
-                Text(mode.icon, style: const TextStyle(fontSize: 12)),
-                const SizedBox(width: 4),
-              ],
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected ? AppColors.iceWhite : AppColors.grey600,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -262,32 +221,35 @@ class _DraftsScreenState extends State<DraftsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.folder_open, size: 64, color: AppColors.grey300),
-          const SizedBox(height: 16),
+          Icon(
+            Icons.folder_open,
+            size: 64,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withOpacity(0.3),
+          ),
+          Gap(height: LPSpacing.md),
           Text(
             _searchController.text.isNotEmpty
                 ? 'No drafts found'
                 : 'No drafts yet',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: AppColors.grey500),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
-          const SizedBox(height: 8),
+          const Gap(height: LPSpacing.xs),
           Text(
             'Create content in the Content Studio to save drafts',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: AppColors.grey400),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => context.go(AppRoutes.contentStudio),
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('Create Content'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.arcticBlue,
-              foregroundColor: AppColors.iceWhite,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
+          ),
+          const Gap(height: LPSpacing.lg),
+          AppButton.primary(
+            onTap: () => context.go(AppRoutes.contentStudio),
+            label: 'Create Content',
+            icon: Icons.add,
+            size: ButtonSize.sm,
           ),
         ],
       ),
@@ -295,128 +257,103 @@ class _DraftsScreenState extends State<DraftsScreen> {
   }
 
   Widget _buildDraftCard(ContentDraft draft) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.iceWhite,
-        borderRadius: BorderRadius.circular(AppConstants.radiusMd),
-        border: Border.all(color: AppColors.grey200),
-      ),
-      child: InkWell(
-        onTap: () {
-          if (draft.extraData != null) {
-            context.push(AppRoutes.editor, extra: draft);
-          } else {
-            // TODO: Open draft in studio
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Opening Studio drafts coming soon!'),
-                backgroundColor: AppColors.frostPurple,
-              ),
-            );
-          }
-        },
-        borderRadius: BorderRadius.circular(AppConstants.radiusMd),
-        child: Padding(
-          padding: const EdgeInsets.all(AppConstants.spacingMd),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Mode icon
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: _getModeColor(draft.mode).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: LPSpacing.sm),
+      onTap: () {
+        if (draft.extraData != null) {
+          context.push(AppRoutes.editor, extra: draft);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Opening Studio drafts coming soon!'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      },
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppIconBox(
+            child: Text(draft.mode.icon, style: const TextStyle(fontSize: 24)),
+            backgroundColor: _getModeColor(draft.mode).withValues(alpha: 0.1),
+            size: 48,
+          ),
+          const Gap(width: LPSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  draft.previewText,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                 ),
-                child: Center(
-                  child: Text(
-                    draft.mode.icon,
-                    style: const TextStyle(fontSize: 24),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const Gap(height: LPSpacing.xs),
+                Row(
                   children: [
-                    // Preview text
-                    Text(
-                      draft.previewText,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
+                    ...draft.platforms.take(3).map((p) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: Text(
+                          p.icon,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      );
+                    }),
+                    if (draft.platforms.length > 3)
+                      Text(
+                        '+${draft.platforms.length - 3}',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(fontSize: 12),
                       ),
+                    Spacer(),
+                    Icon(
+                      Icons.access_time,
+                      size: 14,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(height: 8),
-                    // Metadata row
-                    Row(
-                      children: [
-                        // Platforms
-                        ...draft.platforms.take(3).map((p) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: Text(
-                              p.icon,
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          );
-                        }),
-                        if (draft.platforms.length > 3)
-                          Text(
-                            '+${draft.platforms.length - 3}',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: AppColors.grey500),
-                          ),
-                        const Spacer(),
-                        // Time
-                        Icon(
-                          Icons.access_time,
-                          size: 14,
-                          color: AppColors.grey400,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _formatTime(draft.createdAt),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.grey500),
-                        ),
-                      ],
+                    const Gap(width: LPSpacing.xxs),
+                    Text(
+                      _formatTime(draft.createdAt),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(fontSize: 12),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              // Delete button
-              IconButton(
-                onPressed: () => _deleteDraft(draft.id),
-                icon: const Icon(Icons.delete_outline, size: 20),
-                color: AppColors.grey400,
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+          const Gap(width: LPSpacing.xs),
+          AppIconButton(
+            onTap: () => _deleteDraft(draft.id),
+            icon: Icons.delete_outline,
+            size: 40,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ],
       ),
     );
   }
 
   Color _getModeColor(ContentMode mode) {
+    final colorScheme = Theme.of(context).colorScheme;
     switch (mode) {
       case ContentMode.auto:
-        return AppColors.auroraTeal;
+        return colorScheme.secondary;
       case ContentMode.caption:
-        return AppColors.arcticBlue;
+        return colorScheme.primary;
       case ContentMode.image:
-        return AppColors.auroraTeal;
+        return colorScheme.secondary;
       case ContentMode.carousel:
-        return AppColors.sunsetCoral;
+        return colorScheme.tertiary; // Was coral
       case ContentMode.video:
-        return AppColors.frostPurple;
+        return colorScheme.tertiaryContainer; // Was accent
     }
   }
 

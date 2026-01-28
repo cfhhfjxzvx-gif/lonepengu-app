@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
+import '../design/lp_design.dart';
 import '../constants/app_constants.dart';
 
 /// Reusable App logo widget
@@ -37,18 +37,7 @@ class AppLogo extends StatelessWidget {
       decoration: withShadow
           ? BoxDecoration(
               borderRadius: BorderRadius.circular(borderRadius),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.arcticBlue.withValues(alpha: 0.2),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-                BoxShadow(
-                  color: AppColors.penguinBlack.withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+              boxShadow: LPShadows.lg,
             )
           : null,
       child: ClipRRect(
@@ -76,12 +65,12 @@ class AppLogo extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           logoWidget,
-          SizedBox(width: AppConstants.spacingMd),
+          Gap(width: LPSpacing.md),
           Text(
             AppConstants.appName,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            style: LPText.hMD.copyWith(
               fontWeight: FontWeight.bold,
-              color: AppColors.penguinBlack,
+              color: LPColors.textPrimary,
             ),
           ),
         ],
@@ -94,7 +83,11 @@ class AppLogo extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        gradient: AppColors.accentGradient,
+        gradient: LinearGradient(
+          colors: [LPColors.primary, LPColors.secondary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: Center(
@@ -127,7 +120,11 @@ class AppBarLogo extends StatelessWidget {
               width: size,
               height: size,
               decoration: BoxDecoration(
-                gradient: AppColors.accentGradient,
+                gradient: LinearGradient(
+                  colors: [LPColors.primary, LPColors.secondary],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Center(

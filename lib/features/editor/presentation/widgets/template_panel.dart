@@ -8,6 +8,9 @@ class TemplatePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     // 6 static templates for MVP
     final List<EditorTemplate> templates = [
       EditorTemplate(
@@ -46,49 +49,78 @@ class TemplatePanel extends StatelessWidget {
           ),
         ],
       ),
-      // Add more as needed...
+      EditorTemplate(
+        id: '3',
+        name: 'Dark Elegance',
+        layers: [
+          EditorLayer(
+            id: 't4',
+            type: LayerType.text,
+            position: const Offset(40, 40),
+            text: 'STAY INSPIRED',
+            fontSize: 36,
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
+          ),
+        ],
+      ),
     ];
 
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.8,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 0.85,
       ),
       itemCount: templates.length,
       itemBuilder: (context, index) {
         final template = templates[index];
         return InkWell(
           onTap: () => onSelectTemplate(template),
-          child: Container(
+          borderRadius: BorderRadius.circular(16),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
+              color: isDark
+                  ? theme.colorScheme.surfaceContainerLow
+                  : theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: theme.colorScheme.outlineVariant),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 5,
+                  color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.dashboard_customize_rounded,
-                  size: 40,
-                  color: Colors.blueGrey,
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.dashboard_customize_rounded,
+                    size: 32,
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  template.name,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    template.name,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
+                    ),
                   ),
                 ),
               ],

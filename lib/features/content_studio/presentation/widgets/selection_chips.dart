@@ -1,9 +1,10 @@
+import 'package:lone_pengu/core/design/lp_design.dart';
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../data/content_models.dart';
 
 /// Platform selection chips (multi-select)
+/// Theme-aware: adapts to light/dark mode
 class PlatformChips extends StatelessWidget {
   final List<SocialPlatform> selected;
   final ValueChanged<List<SocialPlatform>> onChanged;
@@ -16,6 +17,14 @@ class PlatformChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final chipBgColor = isDark ? LPColors.surfaceDark : LPColors.surface;
+    final chipBorderColor = isDark ? LPColors.borderDark : LPColors.grey300;
+    final unselectedTextColor = isDark
+        ? LPColors.textSecondaryDark
+        : LPColors.grey700;
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -35,14 +44,12 @@ class PlatformChips extends StatelessWidget {
             duration: AppConstants.shortDuration,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? _getPlatformColor(platform)
-                  : AppColors.iceWhite,
+              color: isSelected ? _getPlatformColor(platform) : chipBgColor,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: isSelected
                     ? _getPlatformColor(platform)
-                    : AppColors.grey300,
+                    : chipBorderColor,
                 width: isSelected ? 2 : 1,
               ),
               boxShadow: isSelected
@@ -67,7 +74,7 @@ class PlatformChips extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected ? AppColors.iceWhite : AppColors.grey700,
+                    color: isSelected ? Colors.white : unselectedTextColor,
                   ),
                 ),
               ],
@@ -87,12 +94,13 @@ class PlatformChips extends StatelessWidget {
       case SocialPlatform.linkedin:
         return const Color(0xFF0A66C2);
       case SocialPlatform.x:
-        return AppColors.penguinBlack;
+        return LPColors.textPrimary;
     }
   }
 }
 
 /// Tone selection chips (single select)
+/// Theme-aware: adapts to light/dark mode
 class ToneChips extends StatelessWidget {
   final ContentTone selected;
   final ValueChanged<ContentTone> onChanged;
@@ -101,6 +109,14 @@ class ToneChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final chipBgColor = isDark ? LPColors.surfaceDark : LPColors.surface;
+    final chipBorderColor = isDark ? LPColors.borderDark : LPColors.grey300;
+    final unselectedTextColor = isDark
+        ? LPColors.textSecondaryDark
+        : LPColors.grey700;
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -112,10 +128,10 @@ class ToneChips extends StatelessWidget {
             duration: AppConstants.shortDuration,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.arcticBlue : AppColors.iceWhite,
+              color: isSelected ? LPColors.primary : chipBgColor,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isSelected ? AppColors.arcticBlue : AppColors.grey300,
+                color: isSelected ? LPColors.primary : chipBorderColor,
               ),
             ),
             child: Text(
@@ -123,7 +139,7 @@ class ToneChips extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? AppColors.iceWhite : AppColors.grey700,
+                color: isSelected ? Colors.white : unselectedTextColor,
               ),
             ),
           ),
@@ -134,6 +150,7 @@ class ToneChips extends StatelessWidget {
 }
 
 /// Length selection chips
+/// Theme-aware: adapts to light/dark mode
 class LengthChips extends StatelessWidget {
   final ContentLength selected;
   final ValueChanged<ContentLength> onChanged;
@@ -146,6 +163,13 @@ class LengthChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final chipBgColor = isDark ? LPColors.surfaceDark : LPColors.grey100;
+    final unselectedTextColor = isDark
+        ? LPColors.textSecondaryDark
+        : LPColors.grey600;
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -157,7 +181,7 @@ class LengthChips extends StatelessWidget {
             duration: AppConstants.shortDuration,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.auroraTeal : AppColors.grey100,
+              color: isSelected ? LPColors.accent : chipBgColor,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -165,7 +189,7 @@ class LengthChips extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: isSelected ? AppColors.iceWhite : AppColors.grey600,
+                color: isSelected ? Colors.white : unselectedTextColor,
               ),
             ),
           ),
@@ -176,6 +200,7 @@ class LengthChips extends StatelessWidget {
 }
 
 /// Image style chips
+/// Theme-aware: adapts to light/dark mode
 class ImageStyleChips extends StatelessWidget {
   final ImageStyle selected;
   final ValueChanged<ImageStyle> onChanged;
@@ -188,6 +213,14 @@ class ImageStyleChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final chipBgColor = isDark ? LPColors.surfaceDark : LPColors.surface;
+    final chipBorderColor = isDark ? LPColors.borderDark : LPColors.grey300;
+    final unselectedTextColor = isDark
+        ? LPColors.textSecondaryDark
+        : LPColors.grey700;
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -199,10 +232,10 @@ class ImageStyleChips extends StatelessWidget {
             duration: AppConstants.shortDuration,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.frostPurple : AppColors.iceWhite,
+              color: isSelected ? LPColors.accent : chipBgColor,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isSelected ? AppColors.frostPurple : AppColors.grey300,
+                color: isSelected ? LPColors.accent : chipBorderColor,
               ),
             ),
             child: Text(
@@ -210,7 +243,7 @@ class ImageStyleChips extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? AppColors.iceWhite : AppColors.grey700,
+                color: isSelected ? Colors.white : unselectedTextColor,
               ),
             ),
           ),
@@ -221,6 +254,7 @@ class ImageStyleChips extends StatelessWidget {
 }
 
 /// Aspect ratio chips
+/// Theme-aware: adapts to light/dark mode
 class AspectRatioChips extends StatelessWidget {
   final AppAspectRatio selected;
   final ValueChanged<AppAspectRatio> onChanged;
@@ -233,6 +267,14 @@ class AspectRatioChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final chipBgColor = isDark ? LPColors.surfaceDark : LPColors.grey100;
+    final chipBorderColor = isDark ? LPColors.borderDark : LPColors.grey300;
+    final unselectedTextColor = isDark
+        ? LPColors.textSecondaryDark
+        : LPColors.grey600;
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -244,10 +286,10 @@ class AspectRatioChips extends StatelessWidget {
             duration: AppConstants.shortDuration,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.arcticBlue : AppColors.grey100,
+              color: isSelected ? LPColors.primary : chipBgColor,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: isSelected ? AppColors.arcticBlue : AppColors.grey300,
+                color: isSelected ? LPColors.primary : chipBorderColor,
               ),
             ),
             child: Text(
@@ -255,7 +297,7 @@ class AspectRatioChips extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? AppColors.iceWhite : AppColors.grey600,
+                color: isSelected ? Colors.white : unselectedTextColor,
               ),
             ),
           ),
@@ -266,6 +308,7 @@ class AspectRatioChips extends StatelessWidget {
 }
 
 /// Carousel style chips
+/// Theme-aware: adapts to light/dark mode
 class CarouselStyleChips extends StatelessWidget {
   final CarouselStyle selected;
   final ValueChanged<CarouselStyle> onChanged;
@@ -278,6 +321,14 @@ class CarouselStyleChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final chipBgColor = isDark ? LPColors.surfaceDark : LPColors.surface;
+    final chipBorderColor = isDark ? LPColors.borderDark : LPColors.grey300;
+    final unselectedTextColor = isDark
+        ? LPColors.textSecondaryDark
+        : LPColors.grey700;
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -289,10 +340,10 @@ class CarouselStyleChips extends StatelessWidget {
             duration: AppConstants.shortDuration,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.sunsetCoral : AppColors.iceWhite,
+              color: isSelected ? LPColors.error : chipBgColor,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isSelected ? AppColors.sunsetCoral : AppColors.grey300,
+                color: isSelected ? LPColors.error : chipBorderColor,
               ),
             ),
             child: Text(
@@ -300,7 +351,7 @@ class CarouselStyleChips extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? AppColors.iceWhite : AppColors.grey700,
+                color: isSelected ? Colors.white : unselectedTextColor,
               ),
             ),
           ),
@@ -311,6 +362,7 @@ class CarouselStyleChips extends StatelessWidget {
 }
 
 /// Video duration chips
+/// Theme-aware: adapts to light/dark mode
 class VideoDurationChips extends StatelessWidget {
   final VideoDuration selected;
   final ValueChanged<VideoDuration> onChanged;
@@ -323,6 +375,13 @@ class VideoDurationChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final chipBgColor = isDark ? LPColors.surfaceDark : LPColors.grey100;
+    final unselectedTextColor = isDark
+        ? LPColors.textSecondaryDark
+        : LPColors.grey600;
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -334,7 +393,7 @@ class VideoDurationChips extends StatelessWidget {
             duration: AppConstants.shortDuration,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.arcticBlue : AppColors.grey100,
+              color: isSelected ? LPColors.primary : chipBgColor,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -342,7 +401,7 @@ class VideoDurationChips extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? AppColors.iceWhite : AppColors.grey600,
+                color: isSelected ? Colors.white : unselectedTextColor,
               ),
             ),
           ),
@@ -353,6 +412,7 @@ class VideoDurationChips extends StatelessWidget {
 }
 
 /// Video style chips
+/// Theme-aware: adapts to light/dark mode
 class VideoStyleChips extends StatelessWidget {
   final VideoStyle selected;
   final ValueChanged<VideoStyle> onChanged;
@@ -365,6 +425,14 @@ class VideoStyleChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final chipBgColor = isDark ? LPColors.surfaceDark : LPColors.surface;
+    final chipBorderColor = isDark ? LPColors.borderDark : LPColors.grey300;
+    final unselectedTextColor = isDark
+        ? LPColors.textSecondaryDark
+        : LPColors.grey700;
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -376,10 +444,10 @@ class VideoStyleChips extends StatelessWidget {
             duration: AppConstants.shortDuration,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.frostPurple : AppColors.iceWhite,
+              color: isSelected ? LPColors.accent : chipBgColor,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isSelected ? AppColors.frostPurple : AppColors.grey300,
+                color: isSelected ? LPColors.accent : chipBorderColor,
               ),
             ),
             child: Text(
@@ -387,7 +455,7 @@ class VideoStyleChips extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? AppColors.iceWhite : AppColors.grey700,
+                color: isSelected ? Colors.white : unselectedTextColor,
               ),
             ),
           ),

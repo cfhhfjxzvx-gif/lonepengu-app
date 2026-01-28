@@ -1,15 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/responsive_builder.dart';
-
-// Brand Colors
-const Color _navyBackground = Color(0xFF122B4A);
-const Color _navyDark = Color(0xFF0A1D33);
-const Color _iceWhite = Color(0xFFF8FAFC);
-const Color _arcticBlue = Color(0xFF1E3A5F);
 
 /// Premium animated splash screen for LonePengu
 class SplashScreen extends StatefulWidget {
@@ -97,8 +90,6 @@ class _SplashScreenState extends State<SplashScreen>
     _shimmerController.forward();
 
     // Total duration 2.2s (2200ms)
-    // We are at 1250ms + 300ms (shimmer) = 1550ms
-    // Wait remaining 650ms
     await Future.delayed(const Duration(milliseconds: 650));
     if (!mounted) return;
 
@@ -121,11 +112,14 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
       body: Stack(
         children: [
           // Premium Background with Radial Gradient
-          _buildBackground(),
+          _buildBackground(theme),
 
           SafeArea(
             child: ResponsiveBuilder(
@@ -139,12 +133,12 @@ class _SplashScreenState extends State<SplashScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // Animated Logo with Glow
-                      _buildAnimatedLogo(logoSize),
+                      _buildAnimatedLogo(theme, logoSize),
 
                       const SizedBox(height: 18),
 
                       // Animated Brand Text
-                      _buildAnimatedText(textSize),
+                      _buildAnimatedText(theme, textSize),
                     ],
                   ),
                 );
@@ -156,22 +150,29 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Widget _buildBackground() {
+  Widget _buildBackground(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       height: double.infinity,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: RadialGradient(
           center: Alignment.center,
           radius: 1.0,
-          colors: [_navyBackground, _navyDark],
-          stops: [0.2, 1.0],
+          colors: [
+            isDark ? theme.colorScheme.surface : theme.colorScheme.surface,
+            isDark
+                ? theme.colorScheme.primaryContainer.withOpacity(0.15)
+                : theme.colorScheme.primaryContainer.withOpacity(0.05),
+          ],
+          stops: const [0.2, 1.0],
         ),
       ),
     );
   }
 
-  Widget _buildAnimatedLogo(double size) {
+  Widget _buildAnimatedLogo(ThemeData theme, double size) {
     return AnimatedBuilder(
       animation: _logoController,
       builder: (context, child) {
@@ -186,7 +187,7 @@ class _SplashScreenState extends State<SplashScreen>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.white.withValues(alpha: 0.05),
+                      color: theme.colorScheme.primary.withOpacity(0.1),
                       blurRadius: 40,
                       spreadRadius: 10,
                     ),
@@ -206,18 +207,18 @@ class _SplashScreenState extends State<SplashScreen>
           height: size,
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) =>
-              _buildLogoPlaceholder(size),
+              _buildLogoPlaceholder(theme, size),
         ),
       ),
     );
   }
 
-  Widget _buildLogoPlaceholder(double size) {
+  Widget _buildLogoPlaceholder(ThemeData theme, double size) {
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: _iceWhite.withValues(alpha: 0.1),
+        color: theme.colorScheme.primary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(size * 0.15),
       ),
       child: Center(
@@ -226,13 +227,14 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Widget _buildAnimatedText(double size) {
+  Widget _buildAnimatedText(ThemeData theme, double size) {
     return AnimatedBuilder(
       animation: Listenable.merge([_textController, _shimmerController]),
       builder: (context, child) {
         return SwipeRevealText(
           text: _brandName,
           fontSize: size,
+          theme: theme,
           revealProgress: _textController.value,
           shimmerProgress: _shimmerController.value,
         );
@@ -245,12 +247,14 @@ class _SplashScreenState extends State<SplashScreen>
 class SwipeRevealText extends StatelessWidget {
   final String text;
   final double fontSize;
+  final ThemeData theme;
   final double revealProgress;
   final double shimmerProgress;
 
   const SwipeRevealText({
     super.key,
     required this.text,
+    required this.theme,
     required this.fontSize,
     required this.revealProgress,
     required this.shimmerProgress,
@@ -276,12 +280,12 @@ class SwipeRevealText extends StatelessWidget {
                 return LinearGradient(
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
-                  colors: const [
-                    Colors.transparent,
-                    Colors.white24,
-                    Colors.white,
-                    Colors.white24,
-                    Colors.transparent,
+                  colors: [
+                    theme.colorScheme.onSurface.withOpacity(0.0),
+                    theme.colorScheme.onSurface.withOpacity(0.25),
+                    theme.colorScheme.onSurface,
+                    theme.colorScheme.onSurface.withOpacity(0.25),
+                    theme.colorScheme.onSurface.withOpacity(0.0),
                   ],
                   stops: [
                     (shimmerProgress * 1.5) - 0.5,
@@ -300,30 +304,28 @@ class SwipeRevealText extends StatelessWidget {
   }
 
   Widget _buildStrokedText(BuildContext context) {
+    final baseStyle = theme.textTheme.displayMedium?.copyWith(
+      fontSize: fontSize,
+      fontWeight: FontWeight.w900,
+      letterSpacing: -0.5,
+    );
+
     return Stack(
       children: [
         // Stroke
         Text(
           text,
-          style: GoogleFonts.inter(
-            fontSize: fontSize,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
+          style: baseStyle?.copyWith(
             foreground: Paint()
               ..style = PaintingStyle.stroke
-              ..strokeWidth = 1.5
-              ..color = _arcticBlue,
+              ..strokeWidth = 1.0
+              ..color = theme.colorScheme.primary.withOpacity(0.3),
           ),
         ),
         // Fill
         Text(
           text,
-          style: GoogleFonts.inter(
-            fontSize: fontSize,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-            color: _iceWhite,
-          ),
+          style: baseStyle?.copyWith(color: theme.colorScheme.onSurface),
         ),
       ],
     );

@@ -1,5 +1,5 @@
+import 'package:lone_pengu/core/design/lp_design.dart';
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../brand_kit/domain/brand_kit_model.dart';
 
 class BrandKitProgressCard extends StatelessWidget {
@@ -24,18 +24,18 @@ class BrandKitProgressCard extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: isValid
                 ? [
-                    AppColors.arcticBlue,
-                    AppColors.arcticBlue.withValues(alpha: 0.8),
+                    LPColors.primary,
+                    LPColors.primary.withValues(alpha: 0.8),
                   ]
-                : [AppColors.iceWhite, AppColors.iceWhite],
+                : [LPColors.surface, LPColors.surface],
           ),
           borderRadius: BorderRadius.circular(20),
-          border: isValid ? null : Border.all(color: AppColors.grey200),
+          border: isValid ? null : Border.all(color: LPColors.grey200),
           boxShadow: [
             BoxShadow(
               color: isValid
-                  ? AppColors.arcticBlue.withValues(alpha: 0.2)
-                  : AppColors.penguinBlack.withValues(alpha: 0.05),
+                  ? LPColors.primary.withValues(alpha: 0.2)
+                  : LPColors.textPrimary.withValues(alpha: 0.05),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -46,7 +46,7 @@ class BrandKitProgressCard extends StatelessWidget {
             Row(
               children: [
                 _buildIcon(isValid),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,11 +57,11 @@ class BrandKitProgressCard extends StatelessWidget {
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: isValid
-                              ? AppColors.iceWhite
-                              : AppColors.penguinBlack,
+                              ? LPColors.surface
+                              : LPColors.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Text(
                         isValid
                             ? 'Everything looks set!'
@@ -69,8 +69,8 @@ class BrandKitProgressCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 13,
                           color: isValid
-                              ? AppColors.iceWhite.withValues(alpha: 0.7)
-                              : AppColors.grey500,
+                              ? LPColors.surface.withValues(alpha: 0.7)
+                              : LPColors.grey500,
                         ),
                       ),
                     ],
@@ -112,13 +112,13 @@ class BrandKitProgressCard extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         color: isValid
-            ? AppColors.iceWhite.withValues(alpha: 0.2)
-            : AppColors.auroraTeal.withValues(alpha: 0.1),
+            ? LPColors.surface.withValues(alpha: 0.2)
+            : LPColors.accent.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Icon(
         isValid ? Icons.done_all_rounded : Icons.palette_outlined,
-        color: isValid ? AppColors.iceWhite : AppColors.auroraTeal,
+        color: isValid ? LPColors.surface : LPColors.accent,
       ),
     );
   }
@@ -128,14 +128,14 @@ class BrandKitProgressCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: isValid
-            ? AppColors.iceWhite.withValues(alpha: 0.2)
-            : AppColors.grey100,
+            ? LPColors.surface.withValues(alpha: 0.2)
+            : LPColors.grey100,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
         '$percentage%',
         style: TextStyle(
-          color: isValid ? AppColors.iceWhite : AppColors.grey700,
+          color: isValid ? LPColors.surface : LPColors.grey700,
           fontSize: 12,
           fontWeight: FontWeight.w800,
         ),
@@ -150,10 +150,10 @@ class BrandKitProgressCard extends StatelessWidget {
         value: progress,
         minHeight: 8,
         backgroundColor: isValid
-            ? AppColors.iceWhite.withValues(alpha: 0.1)
-            : AppColors.grey100,
+            ? LPColors.surface.withValues(alpha: 0.1)
+            : LPColors.grey100,
         valueColor: AlwaysStoppedAnimation<Color>(
-          isValid ? AppColors.iceWhite : AppColors.auroraTeal,
+          isValid ? LPColors.surface : LPColors.accent,
         ),
       ),
     );

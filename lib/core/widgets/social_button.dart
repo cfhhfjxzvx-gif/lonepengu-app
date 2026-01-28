@@ -1,5 +1,5 @@
+import 'package:lone_pengu/core/design/lp_design.dart';
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../constants/app_constants.dart';
 
 /// Social login button (e.g., Google)
@@ -24,12 +24,12 @@ class SocialButton extends StatelessWidget {
     final button = Container(
       height: height ?? 56,
       decoration: BoxDecoration(
-        color: AppColors.iceWhite,
+        color: LPColors.surface,
         borderRadius: BorderRadius.circular(AppConstants.radiusMd),
-        border: Border.all(color: AppColors.grey200, width: 1.5),
+        border: Border.all(color: LPColors.grey200, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: AppColors.penguinBlack.withValues(alpha: 0.05),
+            color: LPColors.textPrimary.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -49,7 +49,7 @@ class SocialButton extends StatelessWidget {
                 Text(
                   text,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: AppColors.grey700,
+                    color: LPColors.grey700,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),

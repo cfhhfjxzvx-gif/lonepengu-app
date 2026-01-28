@@ -1,13 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../../core/widgets/app_background.dart';
+import '../../../../core/design/lp_design.dart';
 import '../../../../core/widgets/responsive_builder.dart';
 import '../../data/editor_models.dart';
 import '../../data/editor_storage.dart';
 import '../widgets/editor_canvas.dart';
 import '../widgets/inspector_panel.dart';
-
 import '../../data/editor_args.dart';
 
 class EditorScreen extends StatefulWidget {
@@ -46,7 +45,6 @@ class _EditorScreenState extends State<EditorScreen>
           _aspectRatio = state.aspectRatio;
         }
       } else if (args.asset != null || args.imageBytes != null) {
-        // Auto-detect aspect ratio if provided
         final preset = args.aspectPreset ?? args.asset?.tempUrl ?? '1:1';
         for (final ratio in EditorAspectRatio.values) {
           if (ratio.displayName == preset) {
@@ -55,7 +53,6 @@ class _EditorScreenState extends State<EditorScreen>
           }
         }
 
-        // Auto-create image layer from generated asset or bytes
         final hasImage =
             args.imageBytes != null ||
             args.asset?.bytes != null ||
@@ -69,13 +66,12 @@ class _EditorScreenState extends State<EditorScreen>
             imageBytes: args.imageBytes ?? args.asset?.bytes,
             imageUrl: args.asset?.tempUrl,
             imagePath: args.asset?.filePath,
-            scale: 0.8, // Slightly smaller to anim in
+            scale: 0.8,
           );
 
           _layers.add(layer);
           _selectedLayerId = id;
 
-          // Simple animation effect: scale up to 1.0 after small delay
           Future.delayed(const Duration(milliseconds: 100), () {
             if (mounted) {
               setState(() {
@@ -150,7 +146,7 @@ class _EditorScreenState extends State<EditorScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error picking image: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: LPColors.error,
           ),
         );
       }
@@ -167,7 +163,9 @@ class _EditorScreenState extends State<EditorScreen>
           content: Text(
             success ? 'Draft saved successfully!' : 'Failed to save draft',
           ),
-          backgroundColor: success ? Colors.green : Colors.red,
+          backgroundColor: success ? LPColors.success : LPColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: LPRadius.smBorder),
         ),
       );
     }
@@ -177,44 +175,27 @@ class _EditorScreenState extends State<EditorScreen>
     showDialog(
       context: context,
       builder: (context) => Dialog.fullscreen(
-        child: AppBackground(
-          child: Column(
-            children: [
-              AppBar(
-                title: const Text('Post Preview'),
-                leading: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: GridView.count(
-                    crossAxisCount: kIsWeb ? 2 : 1,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    children: [
-                      _buildPreviewItem(
-                        'Instagram Post',
-                        EditorAspectRatio.igPost,
-                      ),
-                      _buildPreviewItem(
-                        'Story / Reel',
-                        EditorAspectRatio.igReel,
-                      ),
-                      _buildPreviewItem('LinkedIn', EditorAspectRatio.linkedIn),
-                      _buildPreviewItem(
-                        'Facebook House',
-                        EditorAspectRatio.fbPost,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+        child: AppScaffold(
+          appBar: AppBar(
+            title: const Text('Post Preview'),
+            leading: AppIconButton(
+              icon: Icons.close_rounded,
+              onTap: () => Navigator.pop(context),
+            ),
+          ),
+          body: Padding(
+            padding: LPSpacing.page,
+            child: GridView.count(
+              crossAxisCount: kIsWeb ? 2 : 1,
+              mainAxisSpacing: LPSpacing.md,
+              crossAxisSpacing: LPSpacing.md,
+              children: [
+                _buildPreviewItem('Instagram Post', EditorAspectRatio.igPost),
+                _buildPreviewItem('Story / Reel', EditorAspectRatio.igReel),
+                _buildPreviewItem('LinkedIn', EditorAspectRatio.linkedIn),
+                _buildPreviewItem('Facebook Post', EditorAspectRatio.fbPost),
+              ],
+            ),
           ),
         ),
       ),
@@ -224,20 +205,17 @@ class _EditorScreenState extends State<EditorScreen>
   Widget _buildPreviewItem(String title, EditorAspectRatio ratio) {
     return Column(
       children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
+        Text(title, style: LPText.hSM),
+        const Gap(height: LPSpacing.xs),
         Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-            ),
+          child: AppCard(
+            padding: EdgeInsets.zero,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: LPRadius.card,
               child: FittedBox(
                 fit: BoxFit.contain,
                 child: SizedBox(
-                  width: 400, // Reference size for preview scaling
+                  width: 400,
                   height: 400 / ratio.ratio,
                   child: EditorCanvas(
                     layers: _layers,
@@ -257,76 +235,72 @@ class _EditorScreenState extends State<EditorScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
+    return AppScaffold(
+      useSafeArea: true,
       appBar: AppBar(
         title: const Text('Post Editor'),
-        backgroundColor: Colors.white,
-        elevation: 0,
         actions: [
-          IconButton(
-            onPressed: _showPreview,
-            icon: const Icon(Icons.visibility_outlined),
-            tooltip: 'Preview',
-          ),
-          IconButton(
-            onPressed: _saveDraft,
-            icon: const Icon(Icons.save_outlined),
-            tooltip: 'Save Draft',
-          ),
-          TextButton(
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+          AppIconButton(icon: Icons.visibility_outlined, onTap: _showPreview),
+          const Gap(width: LPSpacing.xs),
+          AppIconButton(icon: Icons.save_outlined, onTap: _saveDraft),
+          const Gap(width: LPSpacing.xs),
+          AppButton.secondary(
+            label: 'Export',
+            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Export coming soon!')),
             ),
-            child: const Text('Export'),
+            size: ButtonSize.sm,
           ),
+          const Gap(width: LPSpacing.sm),
         ],
       ),
       body: _isInitialLoading
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Preparing your canvas...'),
-                ],
-              ),
-            )
-          : AppBackground(
-              child: ResponsiveBuilder(
-                builder: (context, deviceType) {
-                  final isMobile = deviceType == DeviceType.mobile;
+          ? const AppLoading(message: 'Preparing your canvas...')
+          : ResponsiveBuilder(
+              builder: (context, deviceType) {
+                final isMobile = deviceType == DeviceType.mobile;
 
-                  if (isMobile) {
-                    return Column(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: _buildCanvasArea(),
-                          ),
-                        ),
-                        Expanded(flex: 2, child: _buildInspector(true)),
-                      ],
-                    );
-                  }
-
-                  return Row(
+                if (isMobile) {
+                  return Column(
                     children: [
                       Expanded(
                         flex: 3,
                         child: Padding(
-                          padding: const EdgeInsets.all(32),
+                          padding: LPSpacing.page,
                           child: _buildCanvasArea(),
                         ),
                       ),
-                      SizedBox(width: 350, child: _buildInspector(false)),
+                      Expanded(flex: 2, child: _buildInspector(true)),
                     ],
                   );
-                },
-              ),
+                }
+
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                final borderColor = isDark
+                    ? LPColors.borderDark
+                    : LPColors.divider;
+                final bgColor = isDark ? LPColors.cardDark : LPColors.surface;
+
+                return Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Padding(
+                        padding: LPSpacing.page,
+                        child: _buildCanvasArea(),
+                      ),
+                    ),
+                    Container(
+                      width: 350,
+                      decoration: BoxDecoration(
+                        border: Border(left: BorderSide(color: borderColor)),
+                        color: bgColor,
+                      ),
+                      child: _buildInspector(false),
+                    ),
+                  ],
+                );
+              },
             ),
     );
   }
@@ -341,7 +315,7 @@ class _EditorScreenState extends State<EditorScreen>
             children: EditorAspectRatio.values.map((ratio) {
               final isSelected = _aspectRatio == ratio;
               return Padding(
-                padding: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.only(right: LPSpacing.xs),
                 child: ChoiceChip(
                   label: Text(ratio.displayName),
                   selected: isSelected,
@@ -353,7 +327,7 @@ class _EditorScreenState extends State<EditorScreen>
             }).toList(),
           ),
         ),
-        const SizedBox(height: 16),
+        const Gap(height: LPSpacing.md),
         // Actual Canvas
         Expanded(
           child: EditorCanvas(

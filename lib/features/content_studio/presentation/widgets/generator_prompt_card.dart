@@ -1,11 +1,12 @@
+import 'package:lone_pengu/core/design/lp_design.dart';
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../data/content_models.dart';
 import '../../data/intent_detector.dart';
 import 'selection_chips.dart';
 
 /// Generator prompt card with all input options
+/// Theme-aware: adapts to light/dark mode
 class GeneratorPromptCard extends StatelessWidget {
   final ContentMode mode;
   final TextEditingController promptController;
@@ -86,19 +87,37 @@ class GeneratorPromptCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Theme-aware colors
+    final cardBgColor = isDark ? LPColors.cardDark : LPColors.surface;
+    final inputFillColor = isDark ? LPColors.surfaceDark : LPColors.grey100;
+    final borderColor = isDark ? LPColors.borderDark : LPColors.grey200;
+    final textColor = colorScheme.onSurface;
+
     return Container(
       padding: const EdgeInsets.all(AppConstants.spacingMd),
       decoration: BoxDecoration(
-        color: AppColors.iceWhite,
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(AppConstants.radiusMd),
-        border: Border.all(color: AppColors.grey200),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.penguinBlack.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: borderColor),
+        boxShadow: isDark
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: LPColors.textPrimary.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,10 +128,16 @@ class GeneratorPromptCard extends StatelessWidget {
           TextField(
             controller: promptController,
             maxLines: 3,
+            style: TextStyle(color: textColor),
             decoration: InputDecoration(
               hintText: 'Describe your post idea...',
+              hintStyle: TextStyle(
+                color: isDark
+                    ? LPColors.textSecondaryDark
+                    : LPColors.textSecondary,
+              ),
               filled: true,
-              fillColor: AppColors.grey100,
+              fillColor: inputFillColor,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide.none,
@@ -238,8 +263,8 @@ class GeneratorPromptCard extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: isGenerating ? null : onGenerate,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.arcticBlue,
-                    foregroundColor: AppColors.iceWhite,
+                    backgroundColor: LPColors.primary,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: isGenerating
@@ -248,7 +273,7 @@ class GeneratorPromptCard extends StatelessWidget {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: AppColors.iceWhite,
+                            color: Colors.white,
                           ),
                         )
                       : const Row(
@@ -267,8 +292,8 @@ class GeneratorPromptCard extends StatelessWidget {
                   onPressed: isGenerating ? null : onSurprise,
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: const BorderSide(color: AppColors.frostPurple),
-                    foregroundColor: AppColors.frostPurple,
+                    side: const BorderSide(color: LPColors.accent),
+                    foregroundColor: LPColors.accent,
                   ),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -327,7 +352,7 @@ class GeneratorPromptCard extends StatelessWidget {
               max: 10,
               divisions: 8,
               label: '$slideCount',
-              activeColor: AppColors.sunsetCoral,
+              activeColor: LPColors.error,
               onChanged: (v) => onSlideCountChanged(v.toInt()),
             ),
           ],
@@ -367,9 +392,9 @@ class GeneratorPromptCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.auroraTeal.withValues(alpha: 0.1),
+        color: LPColors.accent.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.auroraTeal.withValues(alpha: 0.3)),
+        border: Border.all(color: LPColors.accent.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -377,7 +402,7 @@ class GeneratorPromptCard extends StatelessWidget {
           Text(
             'Detected: ${intent.displayName} ($confidence%)',
             style: const TextStyle(
-              color: AppColors.auroraTeal,
+              color: LPColors.accent,
               fontWeight: FontWeight.bold,
               fontSize: 12,
             ),
@@ -388,7 +413,7 @@ class GeneratorPromptCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: AppColors.auroraTeal,
+                color: LPColors.accent,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Text(
@@ -403,8 +428,12 @@ class GeneratorPromptCard extends StatelessWidget {
   }
 
   void _showIntentSelector(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
+      backgroundColor: isDark ? LPColors.cardDark : LPColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -415,9 +444,13 @@ class GeneratorPromptCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'What do you want to generate?',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
               const SizedBox(height: 16),
               ...[
@@ -428,7 +461,10 @@ class GeneratorPromptCard extends StatelessWidget {
               ].map((m) {
                 return ListTile(
                   leading: Text(m.icon, style: const TextStyle(fontSize: 20)),
-                  title: Text(m.displayName),
+                  title: Text(
+                    m.displayName,
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                  ),
                   onTap: () {
                     onIntentChanged?.call(m);
                     Navigator.pop(context);
@@ -443,10 +479,13 @@ class GeneratorPromptCard extends StatelessWidget {
   }
 
   Widget _buildSectionTitle(BuildContext context, String title) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Text(
       title,
       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-        color: AppColors.grey600,
+        color: isDark ? LPColors.textSecondaryDark : LPColors.grey600,
         fontWeight: FontWeight.w600,
       ),
     );
@@ -460,6 +499,11 @@ class GeneratorPromptCard extends StatelessWidget {
     String Function(T) displayName,
     ValueChanged<T> onChanged,
   ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final dropdownBgColor = isDark ? LPColors.surfaceDark : LPColors.grey100;
+    final textColor = theme.colorScheme.onSurface;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -468,20 +512,27 @@ class GeneratorPromptCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: AppColors.grey100,
+            color: dropdownBgColor,
             borderRadius: BorderRadius.circular(8),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<T>(
               value: value,
               isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+              dropdownColor: isDark ? LPColors.cardDark : LPColors.surface,
+              icon: Icon(
+                Icons.keyboard_arrow_down,
+                size: 20,
+                color: isDark
+                    ? LPColors.textSecondaryDark
+                    : LPColors.textSecondary,
+              ),
               items: items.map((item) {
                 return DropdownMenuItem(
                   value: item,
                   child: Text(
                     displayName(item),
-                    style: const TextStyle(fontSize: 14),
+                    style: TextStyle(fontSize: 14, color: textColor),
                   ),
                 );
               }).toList(),

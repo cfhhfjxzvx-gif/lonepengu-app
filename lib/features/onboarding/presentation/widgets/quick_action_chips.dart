@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 
 class QuickActionChipsRow extends StatelessWidget {
@@ -32,21 +31,21 @@ class QuickActionChipsRow extends StatelessWidget {
             _ActionPill(
               icon: Icons.edit_note_rounded,
               label: 'New Caption',
-              color: AppColors.arcticBlue,
+              color: Theme.of(context).colorScheme.primary,
               onTap: onNewCaption,
             ),
             const SizedBox(width: 12),
             _ActionPill(
               icon: Icons.view_carousel_rounded,
               label: 'New Carousel',
-              color: AppColors.frostPurple,
+              color: Theme.of(context).colorScheme.secondary,
               onTap: onNewCarousel,
             ),
             const SizedBox(width: 12),
             _ActionPill(
               icon: Icons.calendar_today_rounded,
               label: 'Schedule Post',
-              color: AppColors.auroraTeal,
+              color: Theme.of(context).colorScheme.tertiary,
               onTap: onSchedule,
             ),
           ],
@@ -95,6 +94,9 @@ class _ActionPillState extends State<_ActionPill> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _scale = 0.98),
       onTapUp: (_) => setState(() => _scale = 1.0),
@@ -107,12 +109,14 @@ class _ActionPillState extends State<_ActionPill> {
           height: 44,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark
+                ? theme.colorScheme.surfaceContainerHigh
+                : theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(100),
-            border: Border.all(color: AppColors.grey200),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
             boxShadow: [
               BoxShadow(
-                color: widget.color.withValues(alpha: 0.08),
+                color: widget.color.withOpacity(isDark ? 0.2 : 0.08),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -125,10 +129,10 @@ class _ActionPillState extends State<_ActionPill> {
               const SizedBox(width: 8),
               Text(
                 widget.label,
-                style: TextStyle(
+                style: theme.textTheme.labelLarge?.copyWith(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.grey800,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
             ],

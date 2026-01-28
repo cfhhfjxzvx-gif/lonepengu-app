@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import '../../../../core/design/lp_design.dart';
 import '../../data/editor_models.dart';
 import 'add_panel.dart';
 import 'template_panel.dart';
 import 'style_panel.dart';
 import 'layers_panel.dart';
 
+/// Inspector panel for editor
+/// Theme-aware: adapts to light/dark mode
 class InspectorPanel extends StatefulWidget {
   final List<EditorLayer> layers;
   final String? selectedLayerId;
@@ -51,12 +54,24 @@ class _InspectorPanelState extends State<InspectorPanel>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
+
+    // Theme-aware colors
+    final bgColor = isDark ? LPColors.cardDark : LPColors.surface;
+    final borderColor = isDark ? LPColors.borderDark : LPColors.grey200;
+    final selectedTabColor = isDark ? LPColors.secondary : LPColors.primary;
+    final unselectedTabColor = isDark
+        ? LPColors.textSecondaryDark
+        : LPColors.grey500;
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: bgColor,
         border: widget.isMobile
             ? null
-            : Border(left: BorderSide(color: Colors.grey.shade200)),
+            : Border(left: BorderSide(color: borderColor)),
         borderRadius: widget.isMobile
             ? const BorderRadius.vertical(top: Radius.circular(20))
             : null,
@@ -66,9 +81,11 @@ class _InspectorPanelState extends State<InspectorPanel>
           TabBar(
             controller: _tabController,
             isScrollable: true,
-            labelColor: Colors.blue,
-            unselectedLabelColor: Colors.grey,
+            labelColor: selectedTabColor,
+            unselectedLabelColor: unselectedTabColor,
+            indicatorColor: selectedTabColor,
             indicatorSize: TabBarIndicatorSize.label,
+            dividerColor: borderColor,
             tabs: const [
               Tab(icon: Icon(Icons.add), text: 'Add'),
               Tab(icon: Icon(Icons.dashboard), text: 'Templates'),
@@ -87,7 +104,7 @@ class _InspectorPanelState extends State<InspectorPanel>
                       type: LayerType.text,
                       position: const Offset(50, 50),
                       text: 'New Text',
-                      color: Colors.black,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   onAddShape: () => widget.onAddLayer(
@@ -96,7 +113,7 @@ class _InspectorPanelState extends State<InspectorPanel>
                       type: LayerType.shape,
                       position: const Offset(50, 50),
                       shapeType: ShapeType.rectangle,
-                      color: Colors.blue,
+                      color: LPColors.primary,
                     ),
                   ),
                   onAddImage: () {

@@ -1,6 +1,6 @@
+import 'package:lone_pengu/core/design/lp_design.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/responsive_builder.dart';
@@ -28,13 +28,13 @@ class BrandKitScreen extends StatelessWidget {
                         width: 120,
                         height: 120,
                         decoration: BoxDecoration(
-                          gradient: AppColors.accentGradient,
+                          gradient: LPColors.accentGradient,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.palette_rounded,
                           size: 56,
-                          color: AppColors.iceWhite,
+                          color: LPColors.surface,
                         ),
                       ),
                       SizedBox(height: AppConstants.spacingXl),
@@ -44,7 +44,7 @@ class BrandKitScreen extends StatelessWidget {
                           vertical: AppConstants.spacingSm,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.frostPurple.withValues(alpha: 0.1),
+                          color: LPColors.accent.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(
                             AppConstants.radiusXl,
                           ),
@@ -53,7 +53,7 @@ class BrandKitScreen extends StatelessWidget {
                           'Coming Soon',
                           style: Theme.of(context).textTheme.labelMedium
                               ?.copyWith(
-                                color: AppColors.frostPurple,
+                                color: LPColors.accent,
                                 fontWeight: FontWeight.w600,
                               ),
                         ),

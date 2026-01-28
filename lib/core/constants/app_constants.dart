@@ -53,4 +53,8 @@ class AppRoutes {
   static const String drafts = '/drafts';
   static const String editor = '/editor';
   static const String scheduler = '/scheduler';
+  static const String analytics = '/analytics';
+  static const String settings = '/settings';
+  static const String accounts = '/accounts';
+  static const String notifications = '/notifications';
 }

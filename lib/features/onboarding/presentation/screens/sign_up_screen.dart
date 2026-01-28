@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/design/lp_design.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/app_logo.dart';
-import '../../../../core/widgets/primary_button.dart';
-import '../../../../core/widgets/social_button.dart';
-import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/responsive_builder.dart';
-
-import '../../../../core/widgets/app_background.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -80,185 +75,149 @@ class _SignUpScreenState extends State<SignUpScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Google Sign-In will be available soon!'),
-        backgroundColor: AppColors.arcticBlue,
+        backgroundColor: LPColors.primary,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppConstants.radiusSm),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: LPRadius.smBorder),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
+    return AppScaffold(
+      useSafeArea: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back_rounded),
-          color: AppColors.penguinBlack,
+        leading: AppIconButton(
+          icon: Icons.arrow_back_rounded,
+          onTap: () => context.pop(),
         ),
       ),
-      body: AppBackground(
-        child: ResponsiveBuilder(
-          builder: (context, deviceType) {
-            return Center(
-              child: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: AppConstants.maxContentWidth,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppConstants.spacingLg),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: ResponsiveBuilder(
+        builder: (context, deviceType) {
+          return Center(
+            child: SingleChildScrollView(
+              padding: LPSpacing.page,
+              child: AppMaxWidth(
+                maxWidth: 400,
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Center(child: AppLogo(size: 90, borderRadius: 16)),
+                      Gap.xl,
+                      Text(
+                        'Create your account',
+                        style: LPText.hLG,
+                        textAlign: TextAlign.center,
+                      ),
+                      Gap.xs,
+                      Text(
+                        'Start managing your social media with AI',
+                        style: LPText.bodyMD,
+                        textAlign: TextAlign.center,
+                      ),
+                      Gap.xxl,
+                      AppTextField(
+                        controller: _nameController,
+                        label: 'Full Name',
+                        hint: 'Enter your full name',
+                        keyboardType: TextInputType.name,
+                        textInputAction: TextInputAction.next,
+                        prefixIcon: const Icon(
+                          Icons.person_outline_rounded,
+                          size: 20,
+                        ),
+                        validator: _validateName,
+                      ),
+                      Gap.md,
+                      AppTextField(
+                        controller: _emailController,
+                        label: 'Email',
+                        hint: 'Enter your email',
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                        validator: _validateEmail,
+                      ),
+                      Gap.md,
+                      AppTextField(
+                        controller: _passwordController,
+                        label: 'Password',
+                        hint: 'Create a password (min 6 characters)',
+                        obscureText: _obscurePassword,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _handleSignUp(),
+                        prefixIcon: const Icon(
+                          Icons.lock_outline_rounded,
+                          size: 20,
+                        ),
+                        suffixIcon: AppIconButton(
+                          size: 32,
+                          onTap: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
+                          icon: _obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                        ),
+                        validator: _validatePassword,
+                      ),
+                      Gap.xl,
+                      AppButton.primary(
+                        label: 'Create Account',
+                        isLoading: _isLoading,
+                        onTap: _handleSignUp,
+                        fullWidth: true,
+                      ),
+                      Gap.lg,
+                      // Divider
+                      Row(
                         children: [
-                          // Centered Logo - 90px
-                          const Center(
-                            child: AppLogo(size: 90, borderRadius: 14),
-                          ),
-                          SizedBox(height: AppConstants.spacingXl),
-
-                          // Title
-                          Text(
-                            'Create your account',
-                            style: Theme.of(context).textTheme.headlineLarge,
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: AppConstants.spacingSm),
-                          Text(
-                            'Start managing your social media with AI',
-                            style: Theme.of(context).textTheme.bodyLarge,
-                            textAlign: TextAlign.center,
-                          ),
-
-                          SizedBox(height: AppConstants.spacingXl),
-
-                          // Full Name Field
-                          CustomTextField(
-                            controller: _nameController,
-                            labelText: 'Full Name',
-                            hintText: 'Enter your full name',
-                            keyboardType: TextInputType.name,
-                            textInputAction: TextInputAction.next,
-                            prefixIcon: const Icon(
-                              Icons.person_outline_rounded,
+                          const Expanded(child: AppDivider()),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: LPSpacing.md,
                             ),
-                            validator: _validateName,
+                            child: Text('or', style: LPText.bodySM),
                           ),
-                          SizedBox(height: AppConstants.spacingMd),
-
-                          // Email Field
-                          CustomTextField(
-                            controller: _emailController,
-                            labelText: 'Email',
-                            hintText: 'Enter your email',
-                            keyboardType: TextInputType.emailAddress,
-                            textInputAction: TextInputAction.next,
-                            prefixIcon: const Icon(Icons.email_outlined),
-                            validator: _validateEmail,
+                          const Expanded(child: AppDivider()),
+                        ],
+                      ),
+                      Gap.lg,
+                      AppButton.secondary(
+                        label: 'Continue with Google',
+                        onTap: _handleGoogleSignUp,
+                        icon: Icons
+                            .login_rounded, // Fallback for custom Google icon
+                        fullWidth: true,
+                      ),
+                      Gap.xl,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Already have an account? ',
+                            style: LPText.bodySM,
                           ),
-                          SizedBox(height: AppConstants.spacingMd),
-
-                          // Password Field
-                          CustomTextField(
-                            controller: _passwordController,
-                            labelText: 'Password',
-                            hintText: 'Create a password (min 6 characters)',
-                            obscureText: _obscurePassword,
-                            textInputAction: TextInputAction.done,
-                            prefixIcon: const Icon(Icons.lock_outline_rounded),
-                            suffixIcon: IconButton(
-                              onPressed: () => setState(
-                                () => _obscurePassword = !_obscurePassword,
-                              ),
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
+                          TextButton(
+                            onPressed: () => context.push(AppRoutes.signIn),
+                            child: Text(
+                              'Sign In',
+                              style: LPText.labelSM.copyWith(
+                                color: LPColors.primary,
                               ),
                             ),
-                            validator: _validatePassword,
-                            onSubmitted: (_) => _handleSignUp(),
-                          ),
-
-                          SizedBox(height: AppConstants.spacingLg),
-
-                          // Create Account Button
-                          PrimaryButton(
-                            text: 'Create Account',
-                            isLoading: _isLoading,
-                            onPressed: _handleSignUp,
-                          ),
-
-                          SizedBox(height: AppConstants.spacingLg),
-
-                          // Divider
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  height: 1,
-                                  color: AppColors.grey200,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppConstants.spacingMd,
-                                ),
-                                child: Text(
-                                  'or',
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ),
-                              Expanded(
-                                child: Container(
-                                  height: 1,
-                                  color: AppColors.grey200,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          SizedBox(height: AppConstants.spacingLg),
-
-                          // Google Sign Up
-                          SocialButton(
-                            text: 'Continue with Google',
-                            icon: const GoogleIcon(size: 20),
-                            onPressed: _handleGoogleSignUp,
-                          ),
-
-                          SizedBox(height: AppConstants.spacingXl),
-
-                          // Sign In Link
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Already have an account? ',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                              TextButton(
-                                onPressed: () => context.push(AppRoutes.signIn),
-                                child: const Text('Sign In'),
-                              ),
-                            ],
                           ),
                         ],
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

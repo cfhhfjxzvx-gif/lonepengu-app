@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/constants/app_constants.dart';
+import '../core/design/lp_design.dart';
 import '../features/onboarding/presentation/screens/splash_screen.dart';
 import '../features/onboarding/presentation/screens/landing_screen.dart';
 import '../features/onboarding/presentation/screens/sign_up_screen.dart';
@@ -14,7 +15,12 @@ import '../features/editor/data/editor_args.dart';
 import '../features/content_studio/presentation/screens/content_studio_screen.dart';
 import '../features/content_studio/presentation/screens/drafts_screen.dart';
 import '../features/editor/presentation/screens/editor_screen.dart';
-import '../features/content_studio/presentation/screens/scheduler_screen.dart';
+import '../features/scheduler/presentation/screens/scheduler_screen.dart';
+import '../features/scheduler/data/scheduler_models.dart';
+import '../features/analytics/presentation/screens/analytics_screen.dart';
+import '../features/settings/presentation/screens/settings_screen.dart';
+import '../features/account_management/presentation/screens/account_management_screen.dart';
+import '../features/notifications/presentation/screens/notifications_screen.dart';
 
 /// Application router configuration using GoRouter
 class AppRouter {
@@ -251,13 +257,97 @@ class AppRouter {
           );
         },
       ),
-      // Scheduler Placeholder
+      // Scheduler
       GoRoute(
         path: AppRoutes.scheduler,
         name: 'scheduler',
+        pageBuilder: (context, state) {
+          ScheduleArgs? args;
+          if (state.extra is ScheduleArgs) {
+            args = state.extra as ScheduleArgs;
+          }
+
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: SchedulerScreen(args: args),
+            transitionDuration: const Duration(milliseconds: 240),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(
+                    opacity: CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeOut,
+                    ),
+                    child: child,
+                  );
+                },
+          );
+        },
+      ),
+      // Analytics
+      GoRoute(
+        path: AppRoutes.analytics,
+        name: 'analytics',
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
-          child: const SchedulerScreen(),
+          child: const AnalyticsScreen(),
+          transitionDuration: const Duration(milliseconds: 240),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOut,
+              ),
+              child: child,
+            );
+          },
+        ),
+      ),
+      // Settings
+      GoRoute(
+        path: AppRoutes.settings,
+        name: 'settings',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const SettingsScreen(),
+          transitionDuration: const Duration(milliseconds: 240),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOut,
+              ),
+              child: child,
+            );
+          },
+        ),
+      ),
+      // Account Management
+      GoRoute(
+        path: AppRoutes.accounts,
+        name: 'accounts',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const AccountManagementScreen(),
+          transitionDuration: const Duration(milliseconds: 240),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOut,
+              ),
+              child: child,
+            );
+          },
+        ),
+      ),
+      // Notifications
+      GoRoute(
+        path: AppRoutes.notifications,
+        name: 'notifications',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const NotificationsScreen(),
           transitionDuration: const Duration(milliseconds: 240),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(
@@ -276,11 +366,7 @@ class AppRouter {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: AppColors.sunsetCoral,
-            ),
+            Icon(Icons.error_outline, size: 64, color: LPColors.error),
             const SizedBox(height: 16),
             Text(
               'Page not found',
@@ -301,8 +387,4 @@ class AppRouter {
       ),
     ),
   );
-}
-
-class AppColors {
-  static const Color sunsetCoral = Color(0xFFF43F5E);
 }

@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/design/lp_design.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/app_logo.dart';
-import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/page_indicator.dart';
 import '../../../../core/widgets/responsive_builder.dart';
-
-import '../../../../core/widgets/app_background.dart';
 
 class WelcomeTourScreen extends StatefulWidget {
   const WelcomeTourScreen({super.key});
@@ -23,21 +20,21 @@ class _WelcomeTourScreenState extends State<WelcomeTourScreen> {
   final List<_TourPage> _pages = [
     _TourPage(
       icon: Icons.auto_awesome,
-      gradientColors: [AppColors.frostPurple, const Color(0xFF6D28D9)],
+      gradientColors: [LPColors.primary, LPColors.primaryDark],
       title: 'AI that understands your brand',
       description:
           'Our AI learns your unique voice and style to create content that truly represents your brand.',
     ),
     _TourPage(
       icon: Icons.calendar_month_rounded,
-      gradientColors: [AppColors.auroraTeal, const Color(0xFF059669)],
+      gradientColors: [LPColors.secondary, LPColors.secondaryDark],
       title: 'Plan posts with a smart calendar',
       description:
           'Schedule content weeks in advance with our intuitive calendar. Best times? We\'ll suggest them.',
     ),
     _TourPage(
       icon: Icons.insights_rounded,
-      gradientColors: [AppColors.sunsetCoral, const Color(0xFFDC2626)],
+      gradientColors: [LPColors.coral, LPColors.coralDark],
       title: 'See what works with analytics',
       description:
           'Track engagement, grow your audience, and understand what content performs best.',
@@ -53,7 +50,7 @@ class _WelcomeTourScreenState extends State<WelcomeTourScreen> {
   void _nextPage() {
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
-        duration: AppConstants.mediumDuration,
+        duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
       );
     } else {
@@ -67,89 +64,71 @@ class _WelcomeTourScreenState extends State<WelcomeTourScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
+    return AppScaffold(
+      useSafeArea: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 12),
-          child: Center(child: AppBarLogo(size: 32)),
+        leading: const Padding(
+          padding: EdgeInsets.all(8),
+          child: AppBarLogo(size: 32),
         ),
-        title: Text(
-          AppConstants.appName,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: AppColors.penguinBlack,
-          ),
-        ),
-        centerTitle: false,
+        title: Text(AppConstants.appName, style: LPText.hMD),
         actions: [
           TextButton(
             onPressed: _skipTour,
             child: Text(
               'Skip',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(color: AppColors.grey500),
+              style: LPText.labelMD.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
-          const SizedBox(width: 8),
+          const Gap(width: LPSpacing.sm),
         ],
       ),
-      body: AppBackground(
-        child: ResponsiveBuilder(
-          builder: (context, deviceType) {
-            return Column(
-              children: [
-                // Page content
-                Expanded(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    onPageChanged: (index) =>
-                        setState(() => _currentPage = index),
-                    itemCount: _pages.length,
-                    itemBuilder: (context, index) {
-                      return _TourPageContent(
-                        page: _pages[index],
-                        deviceType: deviceType,
-                      );
-                    },
+      body: ResponsiveBuilder(
+        builder: (context, deviceType) {
+          return Column(
+            children: [
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (index) =>
+                      setState(() => _currentPage = index),
+                  itemCount: _pages.length,
+                  itemBuilder: (context, index) {
+                    return _TourPageContent(
+                      page: _pages[index],
+                      deviceType: deviceType,
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: LPSpacing.page,
+                child: AppMaxWidth(
+                  maxWidth: 600,
+                  child: Column(
+                    children: [
+                      PageIndicator(
+                        pageCount: _pages.length,
+                        currentPage: _currentPage,
+                      ),
+                      Gap.xxl,
+                      AppButton.primary(
+                        label: _currentPage == _pages.length - 1
+                            ? 'Continue to Brand Setup'
+                            : 'Next',
+                        icon: Icons.arrow_forward_rounded,
+                        onTap: _nextPage,
+                        fullWidth: true,
+                      ),
+                    ],
                   ),
                 ),
-
-                // Bottom section with indicator and button
-                Padding(
-                  padding: const EdgeInsets.all(AppConstants.spacingLg),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: AppConstants.maxContentWidth,
-                    ),
-                    child: Column(
-                      children: [
-                        // Page indicator
-                        PageIndicator(
-                          pageCount: _pages.length,
-                          currentPage: _currentPage,
-                        ),
-                        SizedBox(height: AppConstants.spacingXl),
-
-                        // Continue button
-                        PrimaryButton(
-                          text: _currentPage == _pages.length - 1
-                              ? 'Continue to Brand Setup'
-                              : 'Next',
-                          icon: Icons.arrow_forward_rounded,
-                          onPressed: _nextPage,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -178,63 +157,46 @@ class _TourPageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingLg),
+      padding: LPSpacing.page,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Animated icon container
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0.8, end: 1.0),
-            duration: AppConstants.mediumDuration,
-            curve: Curves.easeOutBack,
-            builder: (context, value, child) {
-              return Transform.scale(scale: value, child: child);
-            },
-            child: Container(
-              width: deviceType == DeviceType.mobile ? 160 : 200,
-              height: deviceType == DeviceType.mobile ? 160 : 200,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: page.gradientColors,
+          Container(
+            width: deviceType == DeviceType.mobile ? 160 : 200,
+            height: deviceType == DeviceType.mobile ? 160 : 200,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: page.gradientColors,
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: page.gradientColors[0].withValues(alpha: 0.3),
+                  blurRadius: 32,
+                  offset: const Offset(0, 12),
                 ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: page.gradientColors[0].withValues(alpha: 0.4),
-                    blurRadius: 40,
-                    offset: const Offset(0, 16),
-                  ),
-                ],
-              ),
-              child: Icon(
-                page.icon,
-                size: deviceType == DeviceType.mobile ? 72 : 88,
-                color: AppColors.iceWhite,
-              ),
+              ],
+            ),
+            child: Icon(
+              page.icon,
+              size: deviceType == DeviceType.mobile ? 72 : 88,
+              color: Colors.white,
             ),
           ),
-
-          SizedBox(height: AppConstants.spacingXxl),
-
-          // Title
+          Gap.xxl,
           Text(
             page.title,
-            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-              fontSize: deviceType == DeviceType.mobile ? 24 : 32,
-            ),
+            style: deviceType == DeviceType.mobile ? LPText.hLG : LPText.hXL,
             textAlign: TextAlign.center,
           ),
-
-          SizedBox(height: AppConstants.spacingMd),
-
-          // Description
+          Gap.md,
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
             child: Text(
               page.description,
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: LPText.bodyMD,
               textAlign: TextAlign.center,
             ),
           ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/constants/app_constants.dart';
+import 'package:lone_pengu/core/design/lp_design.dart';
 import '../../domain/brand_kit_model.dart';
 
 /// Hashtag group card widget
@@ -18,12 +17,24 @@ class HashtagGroupCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.all(AppConstants.spacingMd),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.iceWhite,
-        borderRadius: BorderRadius.circular(AppConstants.radiusSm),
-        border: Border.all(color: AppColors.grey200),
+        color: isDark
+            ? theme.colorScheme.surfaceContainerLow
+            : theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,13 +44,13 @@ class HashtagGroupCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.frostPurple.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: theme.colorScheme.tertiary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.tag_rounded,
-                  size: 18,
-                  color: AppColors.frostPurple,
+                  size: 20,
+                  color: theme.colorScheme.tertiary,
                 ),
               ),
               const SizedBox(width: 12),
@@ -49,15 +60,17 @@ class HashtagGroupCard extends StatelessWidget {
                   children: [
                     Text(
                       group.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     Text(
                       '${group.tags.length} hashtags',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: AppColors.grey500),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
@@ -65,49 +78,54 @@ class HashtagGroupCard extends StatelessWidget {
               IconButton(
                 onPressed: onEdit,
                 icon: const Icon(Icons.edit_outlined, size: 20),
-                color: AppColors.grey500,
+                color: theme.colorScheme.onSurfaceVariant,
                 visualDensity: VisualDensity.compact,
               ),
               IconButton(
                 onPressed: onDelete,
                 icon: const Icon(Icons.delete_outline, size: 20),
-                color: AppColors.sunsetCoral,
+                color: theme.colorScheme.error,
                 visualDensity: VisualDensity.compact,
               ),
             ],
           ),
           if (group.tags.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Wrap(
-              spacing: 6,
-              runSpacing: 6,
+              spacing: 8,
+              runSpacing: 8,
               children: group.tags.take(5).map((tag) {
                 return Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
-                    vertical: 4,
+                    vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.grey100,
-                    borderRadius: BorderRadius.circular(12),
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+                    ),
                   ),
                   child: Text(
                     '#$tag',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: AppColors.grey700),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 );
               }).toList(),
             ),
             if (group.tags.length > 5)
               Padding(
-                padding: const EdgeInsets.only(top: 6),
+                padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   '+${group.tags.length - 5} more',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.grey500,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                     fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
@@ -194,19 +212,19 @@ class _HashtagGroupBottomSheetState extends State<HashtagGroupBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final isEditing = widget.existingGroup != null;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.iceWhite,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.only(
-        left: AppConstants.spacingLg,
-        right: AppConstants.spacingLg,
-        top: AppConstants.spacingLg,
-        bottom:
-            MediaQuery.of(context).viewInsets.bottom + AppConstants.spacingLg,
+        left: 20,
+        right: 20,
+        top: 12,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 32,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -218,27 +236,30 @@ class _HashtagGroupBottomSheetState extends State<HashtagGroupBottomSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.grey300,
+                color: theme.colorScheme.outlineVariant,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Text(
             isEditing ? 'Edit Hashtag Group' : 'New Hashtag Group',
-            style: Theme.of(context).textTheme.headlineSmall,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           // Group name
           TextField(
             controller: _nameController,
             decoration: const InputDecoration(
               labelText: 'Group Name',
               hintText: 'e.g., Social Media Marketing',
+              prefixIcon: Icon(Icons.label_outline_rounded),
             ),
             textCapitalization: TextCapitalization.words,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           // Tags input
           TextField(
             controller: _tagsController,
@@ -246,21 +267,17 @@ class _HashtagGroupBottomSheetState extends State<HashtagGroupBottomSheet> {
               labelText: 'Hashtags',
               hintText: 'marketing, socialmedia, branding',
               helperText: 'Separate with commas or spaces',
+              prefixIcon: Icon(Icons.tag_rounded),
             ),
             maxLines: 3,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           // Save button
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _handleSave,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.arcticBlue,
-                foregroundColor: AppColors.iceWhite,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: Text(isEditing ? 'Update Group' : 'Create Group'),
+            child: AppButton.primary(
+              label: isEditing ? 'Update Group' : 'Create Group',
+              onTap: _handleSave,
             ),
           ),
         ],

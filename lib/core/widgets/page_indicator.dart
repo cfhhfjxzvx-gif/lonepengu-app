@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../constants/app_constants.dart';
+import '../design/lp_design.dart';
 
 /// Page indicator dots for page views
 class PageIndicator extends StatelessWidget {
   final int pageCount;
   final int currentPage;
-  final Color? activeColor;
-  final Color? inactiveColor;
 
   const PageIndicator({
     super.key,
     required this.pageCount,
     required this.currentPage,
-    this.activeColor,
-    this.inactiveColor,
   });
 
   @override
@@ -24,14 +19,14 @@ class PageIndicator extends StatelessWidget {
       children: List.generate(
         pageCount,
         (index) => AnimatedContainer(
-          duration: AppConstants.shortDuration,
+          duration: const Duration(milliseconds: 200),
           margin: const EdgeInsets.symmetric(horizontal: 4),
           width: index == currentPage ? 24 : 8,
           height: 8,
           decoration: BoxDecoration(
             color: index == currentPage
-                ? (activeColor ?? AppColors.arcticBlue)
-                : (inactiveColor ?? AppColors.grey300),
+                ? LPColors.primary
+                : LPColors.textSecondary.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(4),
           ),
         ),

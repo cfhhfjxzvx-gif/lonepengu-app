@@ -1,5 +1,5 @@
+import 'package:lone_pengu/core/design/lp_design.dart';
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../constants/app_constants.dart';
 
 /// Primary action button with gradient background
@@ -27,15 +27,15 @@ class PrimaryButton extends StatelessWidget {
       height: height ?? 56,
       decoration: BoxDecoration(
         gradient: onPressed != null
-            ? AppColors.primaryGradient
+            ? LPColors.primaryGradient
             : const LinearGradient(
-                colors: [AppColors.grey300, AppColors.grey400],
+                colors: [LPColors.grey300, LPColors.grey400],
               ),
         borderRadius: BorderRadius.circular(AppConstants.radiusMd),
         boxShadow: onPressed != null
             ? [
                 BoxShadow(
-                  color: AppColors.arcticBlue.withValues(alpha: 0.3),
+                  color: LPColors.primary.withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -55,7 +55,7 @@ class PrimaryButton extends StatelessWidget {
                     child: CircularProgressIndicator(
                       strokeWidth: 2.5,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        AppColors.iceWhite,
+                        LPColors.surface,
                       ),
                     ),
                   )
@@ -64,13 +64,13 @@ class PrimaryButton extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (icon != null) ...[
-                        Icon(icon, color: AppColors.iceWhite, size: 20),
-                        const SizedBox(width: 8),
+                        Icon(icon, color: LPColors.surface, size: 20),
+                        SizedBox(width: 8),
                       ],
                       Text(
                         text,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: AppColors.iceWhite,
+                          color: LPColors.surface,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/constants/app_constants.dart';
 
 /// Custom stepper for Brand Kit wizard
 class BrandKitStepper extends StatelessWidget {
@@ -17,11 +15,10 @@ class BrandKitStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppConstants.spacingMd,
-        vertical: AppConstants.spacingSm,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         children: List.generate(steps.length * 2 - 1, (index) {
           if (index.isOdd) {
@@ -30,11 +27,11 @@ class BrandKitStepper extends StatelessWidget {
             return Expanded(
               child: Container(
                 height: 2,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
+                margin: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
                   color: stepIndex < currentStep
-                      ? AppColors.auroraTeal
-                      : AppColors.grey200,
+                      ? theme.colorScheme.tertiary
+                      : theme.colorScheme.outlineVariant,
                   borderRadius: BorderRadius.circular(1),
                 ),
               ),
@@ -48,72 +45,73 @@ class BrandKitStepper extends StatelessWidget {
           return GestureDetector(
             onTap: () => onStepTap?.call(stepIndex),
             child: AnimatedContainer(
-              duration: AppConstants.shortDuration,
+              duration: const Duration(milliseconds: 200),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // Step circle
                   AnimatedContainer(
-                    duration: AppConstants.shortDuration,
-                    width: 32,
-                    height: 32,
+                    duration: const Duration(milliseconds: 200),
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
                       color: isCompleted
-                          ? AppColors.auroraTeal
+                          ? theme.colorScheme.tertiary
                           : isCurrent
-                          ? AppColors.arcticBlue
-                          : AppColors.grey100,
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.surfaceContainerHighest,
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: isCompleted
-                            ? AppColors.auroraTeal
+                            ? theme.colorScheme.tertiary
                             : isCurrent
-                            ? AppColors.arcticBlue
-                            : AppColors.grey300,
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.outlineVariant,
                         width: 2,
                       ),
                       boxShadow: isCurrent
                           ? [
                               BoxShadow(
-                                color: AppColors.arcticBlue.withValues(
-                                  alpha: 0.3,
+                                color: theme.colorScheme.primary.withOpacity(
+                                  0.3,
                                 ),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
                             ]
                           : null,
                     ),
                     child: Center(
                       child: isCompleted
-                          ? const Icon(
+                          ? Icon(
                               Icons.check_rounded,
-                              size: 16,
-                              color: AppColors.iceWhite,
+                              size: 18,
+                              color: theme.colorScheme.onTertiary,
                             )
                           : Text(
                               '${stepIndex + 1}',
                               style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
                                 color: isCurrent
-                                    ? AppColors.iceWhite
-                                    : AppColors.grey500,
+                                    ? theme.colorScheme.onPrimary
+                                    : theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   // Step label
                   Text(
                     steps[stepIndex],
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    style: theme.textTheme.labelSmall?.copyWith(
                       color: isCurrent
-                          ? AppColors.arcticBlue
+                          ? theme.colorScheme.primary
                           : isCompleted
-                          ? AppColors.auroraTeal
-                          : AppColors.grey500,
-                      fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w500,
+                          ? theme.colorScheme.tertiary
+                          : theme.colorScheme.onSurfaceVariant,
+                      fontWeight: isCurrent ? FontWeight.bold : FontWeight.w600,
+                      fontSize: 10,
                     ),
                   ),
                 ],
