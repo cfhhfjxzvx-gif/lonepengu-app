@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
+
 /// API Configuration for LonePengu Backend
 ///
 /// Configure your backend URL and API settings here.
@@ -8,17 +11,47 @@ class ApiConfig {
   // BASE URL CONFIGURATION
   // ═══════════════════════════════════════════════════════════════
 
-  /// Development backend URL
-  static const String devBaseUrl = 'http://localhost:3000/api';
+  /// Base URL for development
+  /// On Android emulator, localhost is 10.0.2.2
+  /// For real devices, it's recommended to use your machine's local IP
+  static String get devBaseUrl {
+    // Check if a base URL was provided via environment variable
+    const envUrl = String.fromEnvironment('API_BASE_URL');
+    if (envUrl.isNotEmpty) return envUrl;
 
-  /// Production backend URL (replace with your actual backend URL)
+    // Default development fallback
+    return 'http://localhost:3000/api';
+  }
+
+  /// Production backend URL
   static const String prodBaseUrl = 'https://api.lonepengu.com/api';
 
   /// Current environment
   static const bool isProduction = bool.fromEnvironment('dart.vm.product');
 
-  /// Active base URL
-  static String get baseUrl => isProduction ? prodBaseUrl : devBaseUrl;
+  /// Active base URL with platform-specific adjustments for development
+  static String get baseUrl {
+    if (isProduction) return prodBaseUrl;
+
+    String base = devBaseUrl;
+
+    // Auto-fix localhost for Android emulators
+    if (!kIsWeb && Platform.isAndroid && base.contains('localhost')) {
+      base = base.replaceFirst('localhost', '10.0.2.2');
+    }
+
+    // Clearer logging for developers to debug reachability
+    if (!kIsWeb) {
+      if (base.contains('localhost') || base.contains('127.0.0.1')) {
+        debugPrint(
+          '⚠️ WARNING: Using localhost on mobile. This will fail on real devices. Use your machine IP.',
+        );
+      }
+      debugPrint('📡 API Base URL: $base');
+    }
+
+    return base;
+  }
 
   // ═══════════════════════════════════════════════════════════════
   // API ENDPOINTS
@@ -41,7 +74,7 @@ class ApiConfig {
   // ═══════════════════════════════════════════════════════════════
 
   /// Request timeout in seconds
-  static const int requestTimeout = 30;
+  static const int requestTimeout = 12;
 
   /// Session expiry in hours (30 days)
   static const int sessionExpiryHours = 720;

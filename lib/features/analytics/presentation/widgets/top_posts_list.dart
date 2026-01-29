@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lone_pengu/core/design/lp_design.dart';
 import '../../data/analytics_models.dart';
 import '../../../content_studio/data/content_models.dart';
 
@@ -24,7 +25,7 @@ class TopPostsList extends StatelessWidget {
         border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -53,10 +54,10 @@ class TopPostsList extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.tertiary.withOpacity(0.12),
+                  color: theme.colorScheme.tertiary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: theme.colorScheme.tertiary.withOpacity(0.2),
+                    color: theme.colorScheme.tertiary.withValues(alpha: 0.2),
                   ),
                 ),
                 child: Row(
@@ -108,7 +109,9 @@ class TopPostsList extends StatelessWidget {
           height: 80,
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+            color: theme.colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.5,
+            ),
             borderRadius: BorderRadius.circular(16),
           ),
         );
@@ -126,7 +129,7 @@ class TopPostsList extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: theme.colorScheme.tertiary.withOpacity(0.1),
+                color: theme.colorScheme.tertiary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -159,13 +162,14 @@ class TopPostsList extends StatelessWidget {
 
   Widget _buildPostItem(BuildContext context, TopPost post, int rank) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final platformColor = _getPlatformColor(context, post.platform);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: isDark ? LPColors.cardDark : theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
@@ -176,10 +180,10 @@ class TopPostsList extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: _getRankColor(theme, rank).withOpacity(0.12),
+              color: _getRankColor(theme, rank).withValues(alpha: 0.12),
               shape: BoxShape.circle,
               border: Border.all(
-                color: _getRankColor(theme, rank).withOpacity(0.2),
+                color: _getRankColor(theme, rank).withValues(alpha: 0.2),
               ),
             ),
             child: Center(
@@ -198,7 +202,7 @@ class TopPostsList extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: platformColor.withOpacity(0.1),
+              color: platformColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
@@ -284,7 +288,7 @@ class TopPostsList extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(

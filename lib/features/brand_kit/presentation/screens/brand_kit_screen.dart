@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:palette_generator/palette_generator.dart';
 import '../../../../core/design/lp_design.dart';
 import '../../../../core/constants/app_constants.dart';
 
@@ -102,12 +103,16 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
               logoPath: image.name,
             );
           });
+          // Automatically extract colors
+          await _extractColorsFromLogo(MemoryImage(bytes));
         }
       } else {
         if (mounted) {
           setState(() {
             _brandKit = _brandKit.copyWith(logoPath: image.path);
           });
+          // Automatically extract colors
+          await _extractColorsFromLogo(FileImage(File(image.path)));
         }
       }
     } catch (e) {
@@ -119,6 +124,55 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _extractColorsFromLogo(ImageProvider imageProvider) async {
+    try {
+      final palette = await PaletteGenerator.fromImageProvider(
+        imageProvider,
+        maximumColorCount: 20,
+      );
+
+      if (palette.colors.isEmpty) return;
+
+      final primary = palette.dominantColor?.color ?? palette.colors.first;
+
+      // Filter for secondary - try to find something different from primary
+      Color secondary =
+          palette.vibrantColor?.color ??
+          palette.lightVibrantColor?.color ??
+          (palette.colors.length > 1 ? palette.colors.elementAt(1) : primary);
+
+      // Safe check if primary and secondary are too similar, though dominant vs vibrant usually differs
+
+      Color accent =
+          palette.mutedColor?.color ??
+          palette.darkVibrantColor?.color ??
+          (palette.colors.length > 2 ? palette.colors.elementAt(2) : secondary);
+
+      if (mounted) {
+        setState(() {
+          _brandKit = _brandKit.copyWith(
+            colors: _brandKit.colors.copyWith(
+              primary: primary,
+              secondary: secondary,
+              accent: accent,
+            ),
+          );
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Brand palette updated from logo 🎨'),
+            backgroundColor: LPColors.secondary,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error extracting colors: $e');
     }
   }
 
@@ -143,14 +197,8 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle, color: theme.colorScheme.onSecondary),
-                const Gap(width: 8),
-                const Expanded(child: Text('Brand Kit saved successfully!')),
-              ],
-            ),
-            backgroundColor: const Color(0xFF10B981), // Success green
+            content: const Text('Brand Kit saved successfully!'),
+            backgroundColor: LPColors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -179,8 +227,6 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return AppScaffold(
       useSafeArea: true,
       appBar: AppBar(
@@ -273,7 +319,7 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 10,
                           spreadRadius: 2,
                         ),
@@ -324,7 +370,7 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
         fit: BoxFit.cover,
         width: 120,
         height: 120,
-        errorBuilder: (_, __, ___) => _buildLogoPlaceholder(),
+        errorBuilder: (context, error, stackTrace) => _buildLogoPlaceholder(),
       );
     } else if (!kIsWeb &&
         _brandKit.logoPath != null &&
@@ -334,7 +380,7 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
         fit: BoxFit.cover,
         width: 120,
         height: 120,
-        errorBuilder: (_, __, ___) => _buildLogoPlaceholder(),
+        errorBuilder: (context, error, stackTrace) => _buildLogoPlaceholder(),
       );
     }
     return _buildLogoPlaceholder();
@@ -352,7 +398,9 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
           Icon(
             Icons.add_photo_alternate_outlined,
             size: 32,
-            color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withOpacity(0.3),
           ),
           const SizedBox(height: 4),
           Text(
@@ -416,14 +464,22 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
                   label: 'Apply from Logo',
                   icon: Icons.auto_fix_high,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text(
-                          'Auto-palette from logo coming soon! 🎨',
+                    if (!_brandKit.hasLogo) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please upload a logo first'),
                         ),
-                        backgroundColor: Theme.of(context).colorScheme.tertiary,
-                      ),
-                    );
+                      );
+                      return;
+                    }
+
+                    if (kIsWeb) {
+                      _extractColorsFromLogo(MemoryImage(_brandKit.logoBytes!));
+                    } else {
+                      _extractColorsFromLogo(
+                        FileImage(File(_brandKit.logoPath!)),
+                      );
+                    }
                   },
                   size: ButtonSize.sm,
                   fullWidth: true,
@@ -751,7 +807,7 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),

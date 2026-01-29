@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_constants.dart';
 
 class QuickActionChipsRow extends StatelessWidget {
   final VoidCallback onNewCaption;
@@ -15,59 +14,32 @@ class QuickActionChipsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final screenWidth = constraints.maxWidth;
-        // Buttons width (estimate) + gaps
-        const estimatedContentWidth = 140 * 3 + 24;
-
-        final isNarrow = screenWidth < estimatedContentWidth;
-
-        Widget content = Row(
-          mainAxisAlignment: isNarrow
-              ? MainAxisAlignment.start
-              : MainAxisAlignment.center,
-          children: [
-            _ActionPill(
-              icon: Icons.edit_note_rounded,
-              label: 'New Caption',
-              color: Theme.of(context).colorScheme.primary,
-              onTap: onNewCaption,
-            ),
-            const SizedBox(width: 12),
-            _ActionPill(
-              icon: Icons.view_carousel_rounded,
-              label: 'New Carousel',
-              color: Theme.of(context).colorScheme.secondary,
-              onTap: onNewCarousel,
-            ),
-            const SizedBox(width: 12),
-            _ActionPill(
-              icon: Icons.calendar_today_rounded,
-              label: 'Schedule Post',
-              color: Theme.of(context).colorScheme.tertiary,
-              onTap: onSchedule,
-            ),
-          ],
-        );
-
-        if (isNarrow) {
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppConstants.spacingLg,
-              vertical: 12,
-            ),
-            clipBehavior: Clip.none,
-            child: content,
-          );
-        } else {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: content),
-          );
-        }
-      },
+    return Center(
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 12,
+        runSpacing: 12,
+        children: [
+          _ActionPill(
+            icon: Icons.edit_note_rounded,
+            label: 'New Caption',
+            color: Theme.of(context).colorScheme.primary,
+            onTap: onNewCaption,
+          ),
+          _ActionPill(
+            icon: Icons.view_carousel_rounded,
+            label: 'New Carousel',
+            color: Theme.of(context).colorScheme.secondary,
+            onTap: onNewCarousel,
+          ),
+          _ActionPill(
+            icon: Icons.calendar_today_rounded,
+            label: 'Schedule Post',
+            color: Theme.of(context).colorScheme.tertiary,
+            onTap: onSchedule,
+          ),
+        ],
+      ),
     );
   }
 }

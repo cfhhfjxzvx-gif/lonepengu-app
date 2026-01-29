@@ -135,8 +135,8 @@ class AppCard extends StatelessWidget {
         (useGlow
             ? [
                 BoxShadow(
-                  color: (glowColor ?? theme.colorScheme.primary).withOpacity(
-                    isDark ? 0.3 : 0.2,
+                  color: (glowColor ?? theme.colorScheme.primary).withValues(
+                    alpha: isDark ? 0.3 : 0.2,
                   ),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
@@ -144,7 +144,7 @@ class AppCard extends StatelessWidget {
               ]
             : [
                 BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
                   blurRadius: isDark ? 8 : 4,
                   offset: const Offset(0, 2),
                 ),
@@ -155,8 +155,8 @@ class AppCard extends StatelessWidget {
     final effectiveBorder =
         border ??
         Border.all(
-          color: theme.colorScheme.outlineVariant.withOpacity(
-            isDark ? 0.5 : 0.3,
+          color: theme.colorScheme.outlineVariant.withValues(
+            alpha: isDark ? 0.5 : 0.3,
           ),
           width: 1,
         );
@@ -465,7 +465,9 @@ class AppPill extends StatelessWidget {
           border: isDark
               ? null
               : Border.all(
-                  color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+                  color: theme.colorScheme.outlineVariant.withValues(
+                    alpha: 0.5,
+                  ),
                   width: 1,
                 ),
         ),
@@ -583,14 +585,14 @@ class AppIconBox extends StatelessWidget {
         border: isDark
             ? null
             : Border.all(
-                color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                 width: 1,
               ),
         boxShadow: isDark
             ? null
             : [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/design/lp_design.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/services/logger_service.dart';
 import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/widgets/responsive_builder.dart';
 
@@ -48,15 +50,51 @@ class _SignInScreenState extends State<SignInScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
+    LoggerService.auth('Sign-in requested', {
+      'email': _emailController.text.trim(),
+    });
 
-    // Simulate API call
-    await Future.delayed(const Duration(milliseconds: 800));
+    try {
+      final success = await AuthProvider.instance.loginWithEmail(
+        _emailController.text.trim(),
+        password: _passwordController.text,
+      );
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+      if (!mounted) return;
 
-    // Navigate to home
-    context.go(AppRoutes.home);
+      if (success) {
+        LoggerService.auth('Sign-in successful, navigating to home');
+        context.go(AppRoutes.home);
+      } else {
+        final error = AuthProvider.instance.errorMessage ?? 'Sign in failed';
+        LoggerService.auth('Sign-in failed', {'error': error});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: LPColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      LoggerService.error('Sign-in screen error', e);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'An unexpected error occurred. Please try again.',
+            ),
+            backgroundColor: LPColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        LoggerService.auth('Sign-in loader stopped');
+      }
+    }
   }
 
   void _handleForgotPassword() {

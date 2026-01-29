@@ -203,56 +203,100 @@ class _BrandKitCard extends StatelessWidget {
   final bool isValid;
   final VoidCallback onTap;
 
-  const _BrandKitCard({super.key, required this.isValid, required this.onTap});
+  const _BrandKitCard({required this.isValid, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return AppCard(
+    final primaryColor = theme.colorScheme.primary;
+
+    // Background color based on validity and theme
+    // Light mode: Soft blue tint if valid, white if not
+    // Dark mode: Surface container
+    final bgColor = isDark
+        ? theme.colorScheme.surfaceContainer
+        : (isValid
+              ? primaryColor.withValues(alpha: 0.05)
+              : theme.colorScheme.surface);
+
+    return AppCard.elevated(
       onTap: onTap,
-      padding: LPSpacing.card,
+      padding: const EdgeInsets.all(20),
+      backgroundColor: bgColor,
       child: Row(
         children: [
-          // Icon
-          AppIconBox(
-            icon: isValid ? Icons.verified_rounded : Icons.palette_outlined,
-            size: 48,
-            iconColor: theme.colorScheme.secondary,
-            backgroundColor: theme.colorScheme.secondaryContainer,
+          // Icon Box
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: isValid
+                  ? theme.colorScheme.primaryContainer
+                  : theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              isValid ? Icons.verified_rounded : Icons.palette_outlined,
+              size: 28,
+              color: isValid
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
           ),
           Gap.md,
+
           // Content
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      'Brand Kit',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      Text(
+                        'Brand Kit',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    Gap.sm,
-                    AppPill(
-                      label: isValid ? 'Completed ✅' : 'Setup Required',
-                      backgroundColor: isValid
-                          ? theme.colorScheme.primaryContainer
-                          : theme.colorScheme.errorContainer,
-                      textColor: isValid
-                          ? theme.colorScheme.onPrimaryContainer
-                          : theme.colorScheme.error,
-                      isSmall: true,
-                    ),
-                  ],
+                      if (isValid)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.1,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: 0.2,
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            'Active',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-                Gap.xxs,
+                const Gap(height: 4),
                 Text(
                   isValid
-                      ? 'Everything looks set!'
-                      : 'Complete your setup to unlock AI features',
+                      ? 'Your brand assets are ready to use'
+                      : 'Setup logo, colors & fonts for AI',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -262,10 +306,22 @@ class _BrandKitCard extends StatelessWidget {
               ],
             ),
           ),
+
           // Arrow
-          Icon(
-            Icons.chevron_right_rounded,
-            color: theme.colorScheme.onSurfaceVariant,
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: theme.colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.5,
+              ),
+            ),
+            child: Icon(
+              Icons.chevron_right_rounded,
+              color: theme.colorScheme.onSurfaceVariant,
+              size: 20,
+            ),
           ),
         ],
       ),

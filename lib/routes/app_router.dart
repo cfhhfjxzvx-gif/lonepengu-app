@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/constants/app_constants.dart';
 import '../core/design/lp_design.dart';
+import '../core/providers/auth_provider.dart';
 import '../features/onboarding/presentation/screens/splash_screen.dart';
 import '../features/onboarding/presentation/screens/landing_screen.dart';
 import '../features/onboarding/presentation/screens/sign_up_screen.dart';
@@ -27,6 +28,45 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: true,
+    refreshListenable: AuthProvider.instance,
+    redirect: (context, state) {
+      final authProvider = AuthProvider.instance;
+      final isAuthenticated = authProvider.isAuthenticated;
+      final isInitial = authProvider.state == AuthState.initial;
+      final isAuthRoute =
+          state.matchedLocation == AppRoutes.landing ||
+          state.matchedLocation == AppRoutes.signIn ||
+          state.matchedLocation == AppRoutes.signUp;
+
+      // 1. Always stay on Splash ONLY if initializing (cold boot)
+      // Do NOT redirect on isLoading (let UI handle spinners)
+      if (isInitial) {
+        return AppRoutes.splash;
+      }
+
+      // 2. If authenticated:
+      // - If trying to access Auth pages (Login/SignUp) -> Redirect to Home
+      // - If trying to access Landing -> Redirect to Home
+      // - SPLASH: Do NOT redirect. Let SplashScreen handling navigation after animation.
+      if (isAuthenticated) {
+        if (isAuthRoute || state.matchedLocation == AppRoutes.landing) {
+          return AppRoutes.home;
+        }
+        return null;
+      }
+
+      // 3. If NOT authenticated:
+      // - If trying to access Private pages (Home, Editor, etc.) -> Redirect to Landing
+      // - SPLASH: Do NOT redirect. Let SplashScreen handle navigation.
+      // - Allow Auth routes and Landing
+      if (!isAuthRoute &&
+          state.matchedLocation != AppRoutes.splash &&
+          state.matchedLocation != AppRoutes.landing) {
+        return AppRoutes.landing;
+      }
+
+      return null;
+    },
     routes: [
       // Splash Screen
       GoRoute(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:lone_pengu/core/design/lp_design.dart';
 import '../../data/analytics_models.dart';
 
 /// Engagement trend line chart widget
@@ -25,11 +26,11 @@ class EngagementChart extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: isDark ? LPColors.cardDark : theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -154,7 +155,7 @@ class EngagementChart extends StatelessWidget {
             Icon(
               Icons.bar_chart_rounded,
               size: 40,
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             SizedBox(height: 8),
             Text(
@@ -166,7 +167,9 @@ class EngagementChart extends StatelessWidget {
             Text(
               'Start posting to see trends',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.7,
+                ),
               ),
             ),
           ],
@@ -201,7 +204,7 @@ class EngagementChart extends StatelessWidget {
             horizontalInterval: (maxY - minY) / 4,
             getDrawingHorizontalLine: (value) {
               return FlLine(
-                color: theme.colorScheme.outlineVariant.withOpacity(0.2),
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.2),
                 strokeWidth: 1,
                 dashArray: [5, 5],
               );
@@ -282,8 +285,8 @@ class EngagementChart extends StatelessWidget {
                 show: true,
                 gradient: LinearGradient(
                   colors: [
-                    theme.colorScheme.primary.withOpacity(0.2),
-                    theme.colorScheme.primary.withOpacity(0.05),
+                    theme.colorScheme.primary.withValues(alpha: 0.2),
+                    theme.colorScheme.primary.withValues(alpha: 0.05),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,

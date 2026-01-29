@@ -72,8 +72,8 @@ class BrandKitStepper extends StatelessWidget {
                       boxShadow: isCurrent
                           ? [
                               BoxShadow(
-                                color: theme.colorScheme.primary.withOpacity(
-                                  0.3,
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.3,
                                 ),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),

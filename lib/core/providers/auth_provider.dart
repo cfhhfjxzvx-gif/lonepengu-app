@@ -10,11 +10,12 @@ class AuthProvider extends ChangeNotifier {
   static AuthProvider? _instance;
   static AuthProvider get instance => _instance ??= AuthProvider._();
 
-  AuthProvider._() {
-    _init();
-  }
+  AuthProvider._();
 
   // State
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
+
   AuthState _state = AuthState.initial;
   AuthState get state => _state;
 
@@ -32,10 +33,18 @@ class AuthProvider extends ChangeNotifier {
   // INITIALIZATION
   // ═══════════════════════════════════════════════════════════════
 
-  Future<void> _init() async {
+  /// Initialize AuthProvider and check current status
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
     LoggerService.auth('AuthProvider initializing');
     await SecureStorageService.instance.init();
-    await checkAuthStatus();
+
+    // Non-blocking auth check to prevent app freeze on launch
+    // The AppRouter will handle the buffering state provided by isLoading
+    checkAuthStatus();
+
+    _isInitialized = true;
   }
 
   /// Check current auth status
@@ -66,8 +75,17 @@ class AuthProvider extends ChangeNotifier {
   // ═══════════════════════════════════════════════════════════════
 
   /// Login with email
-  Future<bool> loginWithEmail(String email, {String? name}) async {
-    return _login(email: email, provider: 'email', name: name);
+  Future<bool> loginWithEmail(
+    String email, {
+    String? name,
+    String? password,
+  }) async {
+    return _login(
+      email: email,
+      provider: 'email',
+      name: name,
+      password: password,
+    );
   }
 
   /// Login with Google
@@ -106,6 +124,7 @@ class AuthProvider extends ChangeNotifier {
     String? name,
     String? providerId,
     String? avatarUrl,
+    String? password,
   }) async {
     _setState(AuthState.loading);
     _errorMessage = null;
@@ -115,6 +134,7 @@ class AuthProvider extends ChangeNotifier {
         email: email,
         provider: provider,
         name: name,
+        password: password,
         providerId: providerId,
         avatarUrl: avatarUrl,
       );

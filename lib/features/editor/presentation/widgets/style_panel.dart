@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../data/editor_models.dart';
+import '../../../brand_kit/domain/brand_kit_model.dart';
 
 class StylePanel extends StatelessWidget {
   final EditorLayer? selectedLayer;
   final Function(EditorLayer updatedLayer) onUpdateLayer;
+  final BrandKit? brandKit;
 
   const StylePanel({
     super.key,
     required this.selectedLayer,
     required this.onUpdateLayer,
+    this.brandKit,
   });
 
   @override
@@ -23,7 +26,7 @@ class StylePanel extends StatelessWidget {
             Icon(
               Icons.layers_outlined,
               size: 48,
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.3),
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
@@ -48,7 +51,7 @@ class StylePanel extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.12),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -126,6 +129,19 @@ class StylePanel extends StatelessWidget {
     final theme = Theme.of(context);
     return [
       const SizedBox(height: 24),
+      const SizedBox(height: 24),
+      Text(
+        'Typography',
+        style: theme.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      const SizedBox(height: 12),
+
+      // Font Family Selector
+      _buildFontFamilySelector(context),
+      const SizedBox(height: 16),
+
       Text(
         'Font Size',
         style: theme.textTheme.labelLarge?.copyWith(
@@ -275,7 +291,7 @@ class StylePanel extends StatelessWidget {
 
   Widget _buildColorPalette(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = [
+    final presetColors = [
       Colors.black,
       Colors.white,
       Colors.redAccent,
@@ -286,14 +302,64 @@ class StylePanel extends StatelessWidget {
       Colors.tealAccent,
     ];
 
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: colors.map((color) {
-        final isSelected = selectedLayer!.color.value == color.value;
-        return GestureDetector(
-          onTap: () => onUpdateLayer(selectedLayer!.copyWith(color: color)),
-          child: AnimatedContainer(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (brandKit != null) ...[
+          Text(
+            'Brand Colors',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.outline,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              _buildColorCircle(context, brandKit!.colors.primary, 'Primary'),
+              _buildColorCircle(
+                context,
+                brandKit!.colors.secondary,
+                'Secondary',
+              ),
+              _buildColorCircle(context, brandKit!.colors.accent, 'Accent'),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Presets',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.outline,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: presetColors
+              .map((color) => _buildColorCircle(context, color, ''))
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildColorCircle(BuildContext context, Color color, String label) {
+    final theme = Theme.of(context);
+    final isSelected = selectedLayer!.color.toARGB32() == color.toARGB32();
+
+    return GestureDetector(
+      onTap: () => onUpdateLayer(selectedLayer!.copyWith(color: color)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             width: 40,
             height: 40,
@@ -309,7 +375,7 @@ class StylePanel extends StatelessWidget {
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: color.withOpacity(0.4),
+                        color: color.withValues(alpha: 0.4),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -326,8 +392,74 @@ class StylePanel extends StatelessWidget {
                   )
                 : null,
           ),
-        );
-      }).toList(),
+          if (label.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFontFamilySelector(BuildContext context) {
+    final theme = Theme.of(context);
+    final currentFont = selectedLayer!.fontFamily;
+
+    // Available fonts
+    final Map<String, String> fonts = {
+      'App Default': '',
+      'Serif': 'serif',
+      'Monospace': 'monospace',
+      'Cursive': 'cursive',
+    };
+
+    // Add Brand Kit fonts if available
+    if (brandKit != null) {
+      if (brandKit!.headingFont.isNotEmpty) {
+        fonts['Brand Heading (${brandKit!.headingFont})'] =
+            brandKit!.headingFont;
+      }
+      if (brandKit!.bodyFont.isNotEmpty) {
+        fonts['Brand Body (${brandKit!.bodyFont})'] = brandKit!.bodyFont;
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: fonts.containsValue(currentFont) ? currentFont : '',
+          isExpanded: true,
+          hint: const Text('Select Font'),
+          items: fonts.entries.map((entry) {
+            return DropdownMenuItem<String>(
+              value: entry.value,
+              child: Text(
+                entry.key,
+                style: TextStyle(
+                  fontFamily: entry.value.isEmpty ? null : entry.value,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            onUpdateLayer(selectedLayer!.copyWith(fontFamily: value));
+          },
+        ),
+      ),
     );
   }
 

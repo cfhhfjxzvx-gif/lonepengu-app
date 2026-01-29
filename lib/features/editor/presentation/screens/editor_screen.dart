@@ -8,6 +8,8 @@ import '../../data/editor_storage.dart';
 import '../widgets/editor_canvas.dart';
 import '../widgets/inspector_panel.dart';
 import '../../data/editor_args.dart';
+import '../../../brand_kit/data/brand_kit_storage.dart';
+import '../../../brand_kit/domain/brand_kit_model.dart';
 
 class EditorScreen extends StatefulWidget {
   final EditorArgs? args;
@@ -24,11 +26,20 @@ class _EditorScreenState extends State<EditorScreen>
   String? _selectedLayerId;
   final ImagePicker _picker = ImagePicker();
   bool _isInitialLoading = false;
+  BrandKit? _brandKit;
 
   @override
   void initState() {
     super.initState();
+    _loadBrandKit();
     _handleIncomingArgs();
+  }
+
+  Future<void> _loadBrandKit() async {
+    final brand = await BrandKitStorage.loadBrandKit();
+    if (mounted) {
+      setState(() => _brandKit = brand);
+    }
   }
 
   Future<void> _handleIncomingArgs() async {
@@ -113,6 +124,68 @@ class _EditorScreenState extends State<EditorScreen>
       setState(() {
         _layers[index].position += delta;
       });
+    }
+  }
+
+  void _onLayerScaleRotate(String id, double scale, double rotation) {
+    final index = _layers.indexWhere((l) => l.id == id);
+    if (index != -1 && !_layers[index].isLocked) {
+      setState(() {
+        _layers[index] = _layers[index].copyWith(
+          scale: scale,
+          rotation: rotation,
+        );
+      });
+    }
+  }
+
+  Future<void> _onLayerEdit(String id) async {
+    final index = _layers.indexWhere((l) => l.id == id);
+    if (index == -1) return;
+
+    final layer = _layers[index];
+    if (layer.isLocked) return;
+
+    // Handle Text Edit
+    if (layer.type == LayerType.text) {
+      final controller = TextEditingController(text: layer.text);
+      final newText = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Edit Text'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: 'Enter your text here...',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            AppButton.primary(
+              label: 'Update',
+              onTap: () => Navigator.pop(context, controller.text),
+              size: ButtonSize.sm,
+            ),
+          ],
+        ),
+      );
+
+      if (newText != null && newText.isNotEmpty) {
+        setState(() {
+          _layers[index] = layer.copyWith(text: newText);
+        });
+      }
+    }
+    // Handle Image Edit (Replace)
+    else if (layer.type == LayerType.image) {
+      // Option to replace image?
+      // For now, maybe just show a snackbar or nothing
     }
   }
 
@@ -223,6 +296,7 @@ class _EditorScreenState extends State<EditorScreen>
                     selectedLayerId: null,
                     onLayerSelected: (_) {},
                     onLayerDragged: (_, __) {},
+                    onLayerScaleRotate: (_, __, ___) {},
                   ),
                 ),
               ),
@@ -336,6 +410,8 @@ class _EditorScreenState extends State<EditorScreen>
             selectedLayerId: _selectedLayerId,
             onLayerSelected: (id) => setState(() => _selectedLayerId = id),
             onLayerDragged: _onLayerDragged,
+            onLayerScaleRotate: _onLayerScaleRotate,
+            onLayerEdit: _onLayerEdit,
           ),
         ),
       ],
@@ -347,6 +423,7 @@ class _EditorScreenState extends State<EditorScreen>
       layers: _layers,
       selectedLayerId: _selectedLayerId,
       isMobile: isMobile,
+      brandKit: _brandKit,
       onAddLayer: (layer) {
         if (layer.type == LayerType.image) {
           _pickImageLayer();

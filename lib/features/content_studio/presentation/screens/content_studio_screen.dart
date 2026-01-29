@@ -507,7 +507,7 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
   Widget _buildErrorState() {
     final theme = Theme.of(context);
     return AppCard.outlined(
-      borderColor: theme.colorScheme.error.withOpacity(0.3),
+      borderColor: theme.colorScheme.error.withValues(alpha: 0.3),
       child: Column(
         children: [
           Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),

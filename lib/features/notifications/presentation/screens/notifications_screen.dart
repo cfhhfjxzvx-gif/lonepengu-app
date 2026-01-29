@@ -90,12 +90,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildNotificationCard(NotificationModel item) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return AppCard(
       margin: const EdgeInsets.only(bottom: LPSpacing.sm),
       onTap: () => _markRead(item.id),
       backgroundColor: item.isRead
-          ? null
-          : LPColors.primary.withValues(alpha: 0.03),
+          ? theme.colorScheme.surface
+          : theme.colorScheme.primary.withValues(alpha: isDark ? 0.15 : 0.05),
+      border: isDark && !item.isRead
+          ? Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3))
+          : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -110,10 +116,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     Expanded(
                       child: Text(
                         item.title,
-                        style: LPText.hSM.copyWith(
+                        style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: item.isRead
                               ? FontWeight.w500
                               : FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -121,8 +128,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       Container(
                         width: 8,
                         height: 8,
-                        decoration: const BoxDecoration(
-                          color: LPColors.primary,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -131,22 +138,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 Gap(height: LPSpacing.xxs),
                 Text(
                   item.description,
-                  style: LPText.bodySM.copyWith(
+                  style: theme.textTheme.bodySmall?.copyWith(
                     color: item.isRead
-                        ? LPColors.textSecondary
-                        : LPColors.textPrimary,
+                        ? theme.colorScheme.onSurfaceVariant
+                        : theme.colorScheme.onSurface,
                   ),
                 ),
                 Gap(height: LPSpacing.xs),
-                Text(_formatTimestamp(item.timestamp), style: LPText.caption),
+                Text(
+                  _formatTimestamp(item.timestamp),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
           PopupMenuButton<String>(
-            icon: const Icon(
+            icon: Icon(
               Icons.more_vert_rounded,
               size: 20,
-              color: LPColors.textTertiary,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
             onSelected: (val) {
               if (val == 'delete') _delete(item.id);
@@ -161,13 +173,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildIcon(NotificationType type) {
+    final theme = Theme.of(context);
     IconData icon;
     Color color;
 
     switch (type) {
       case NotificationType.success:
         icon = Icons.check_circle_rounded;
-        color = LPColors.success;
+        color = LPColors.success; // Semantic colors often persistent
         break;
       case NotificationType.warning:
         icon = Icons.warning_rounded;
@@ -179,7 +192,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         break;
       case NotificationType.info:
         icon = Icons.info_rounded;
-        color = LPColors.primary;
+        color = theme.colorScheme.primary;
         break;
     }
 

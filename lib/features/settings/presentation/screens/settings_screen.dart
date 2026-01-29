@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/design/lp_design.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/theme_manager.dart';
+import '../../../../core/providers/auth_provider.dart';
 import '../../data/settings_storage.dart';
 
 /// Settings & Account screen
@@ -106,6 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildAccountInfoSection() {
+    final theme = Theme.of(context);
     return AppCard(
       child: Row(
         children: [
@@ -113,8 +115,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           AppIconBox(
             icon: Icons.person_rounded,
             size: 56,
-            iconColor: LPColors.primary,
-            backgroundColor: LPColors.primary.withValues(alpha: 0.1),
+            iconColor: theme.colorScheme.primary,
+            backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
           ),
           Gap.md,
           // User info
@@ -122,11 +124,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('LonePengu User', style: LPText.hSM),
+                Text('LonePengu User', style: theme.textTheme.titleMedium),
                 Gap.xxs,
                 Text(
                   'user@lonepengu.com',
-                  style: LPText.caption,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -136,8 +140,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // Pro badge
           AppPill(
             label: 'PRO',
-            backgroundColor: LPColors.secondary.withValues(alpha: 0.1),
-            textColor: LPColors.secondaryDark,
+            backgroundColor: theme.colorScheme.secondary.withValues(alpha: 0.1),
+            textColor: theme.colorScheme.secondary,
             isSmall: true,
           ),
         ],
@@ -146,36 +150,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildConnectedAccountsSection() {
+    final theme = Theme.of(context);
     return AppCard(
       onTap: () => context.push(AppRoutes.accounts),
       child: Row(
         children: [
           AppIconBox(
             icon: Icons.link_rounded,
-            iconColor: LPColors.primary,
-            backgroundColor: LPColors.primary.withValues(alpha: 0.1),
+            iconColor: theme.colorScheme.primary,
+            backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
           ),
           Gap.md,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Connected Accounts', style: LPText.hSM),
+                Text('Connected Accounts', style: theme.textTheme.titleSmall),
                 Gap.xxs,
                 Text(
                   'Manage your social media connections',
-                  style: LPText.caption,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
           ),
-          Icon(Icons.chevron_right_rounded, color: LPColors.textTertiary),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ],
       ),
     );
   }
 
   Widget _buildNotificationsSection() {
+    final theme = Theme.of(context);
     return AppCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -183,7 +194,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           Padding(
             padding: LPSpacing.card,
-            child: Text('Notifications', style: LPText.hSM),
+            child: Text('Notifications', style: theme.textTheme.titleSmall),
           ),
           _buildToggleTile(
             title: 'Post Reminders',
@@ -224,17 +235,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
+    final theme = Theme.of(context);
     return ListTile(
       title: Text(
         title,
-        style: LPText.bodyMD.copyWith(fontWeight: FontWeight.w500),
+        style: theme.textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w500,
+        ),
       ),
-      subtitle: Text(subtitle, style: LPText.caption),
+      subtitle: Text(
+        subtitle,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
       trailing: Switch(value: value, onChanged: onChanged),
     );
   }
 
   Widget _buildAppearanceSection() {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -243,7 +263,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             left: LPSpacing.xs,
             bottom: LPSpacing.sm,
           ),
-          child: Text('Appearance', style: LPText.hSM),
+          child: Text('Appearance', style: theme.textTheme.titleSmall),
         ),
         Row(
           children: [
@@ -289,8 +309,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Color color,
     ThemeMode mode,
   ) {
+    final theme = Theme.of(context);
     final isSelected = _themeMode == value;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = theme.brightness == Brightness.dark;
 
     return AppCard(
       onTap: () async {
@@ -298,32 +319,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
         await ThemeManager.instance.setThemeMode(mode);
       },
       useGlow: isSelected,
-      glowColor: isSelected ? LPColors.secondary : null,
+      glowColor: isSelected ? theme.colorScheme.secondary : null,
       border: isSelected
-          ? Border.all(color: LPColors.secondary, width: 2)
-          : Border.all(
-              color: isDark ? LPColors.borderDark : LPColors.border,
-              width: 1.5,
-            ),
+          ? Border.all(color: theme.colorScheme.secondary, width: 2)
+          : Border.all(color: theme.colorScheme.outlineVariant, width: 1.5),
       backgroundColor: isSelected
-          ? (isDark ? LPColors.surfaceDark : LPColors.surface)
+          ? theme.colorScheme.surface
           : (isDark
-                ? LPColors.cardDark
-                : LPColors.surface.withValues(alpha: 0.5)),
+                ? theme.colorScheme.surfaceContainer
+                : theme.colorScheme.surface.withValues(alpha: 0.5)),
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
       child: Column(
         children: [
           Icon(
             icon,
-            color: isSelected ? color : LPColors.textSecondary,
+            color: isSelected ? color : theme.colorScheme.onSurfaceVariant,
             size: 28,
           ),
           Gap.sm,
           Text(
             label,
-            style: LPText.bodySM.copyWith(
+            style: theme.textTheme.bodySmall?.copyWith(
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              color: isSelected ? LPColors.textPrimary : LPColors.textSecondary,
+              color: isSelected
+                  ? theme.colorScheme.onSurface
+                  : theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -332,6 +352,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildAppInfoSection() {
+    final theme = Theme.of(context);
     return AppCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -339,7 +360,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           Padding(
             padding: LPSpacing.card,
-            child: Text('App Info', style: LPText.hSM),
+            child: Text('App Info', style: theme.textTheme.titleSmall),
           ),
           _buildInfoTile('App Version', '1.0.0', Icons.info_outline_rounded),
           _buildInfoTile('Build Number', '1', Icons.build_rounded),
@@ -367,14 +388,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     IconData icon, {
     VoidCallback? onTap,
   }) {
+    final theme = Theme.of(context);
     return ListTile(
-      leading: Icon(icon, color: LPColors.textTertiary, size: 20),
-      title: Text(title, style: LPText.bodyMD),
+      leading: Icon(icon, color: theme.colorScheme.onSurfaceVariant, size: 20),
+      title: Text(title, style: theme.textTheme.bodyMedium),
       trailing: value != null
-          ? Text(value, style: LPText.caption)
-          : const Icon(
+          ? Text(
+              value,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            )
+          : Icon(
               Icons.chevron_right_rounded,
-              color: LPColors.textTertiary,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
       onTap: onTap,
     );
@@ -390,29 +417,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildLogoutSection() {
+    final theme = Theme.of(context);
     return AppCard(
       onTap: _handleLogout,
       child: Row(
         children: [
           AppIconBox(
             icon: Icons.logout_rounded,
-            iconColor: LPColors.error,
-            backgroundColor: LPColors.error.withValues(alpha: 0.1),
+            iconColor: theme.colorScheme.error,
+            backgroundColor: theme.colorScheme.error.withValues(alpha: 0.1),
           ),
           Gap.md,
           Expanded(
             child: Text(
               'Log Out',
-              style: LPText.hSM.copyWith(color: LPColors.error),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
             ),
           ),
-          Icon(Icons.chevron_right_rounded, color: LPColors.error),
+          Icon(Icons.chevron_right_rounded, color: theme.colorScheme.error),
         ],
       ),
     );
   }
 
   Future<void> _handleLogout() async {
+    final theme = Theme.of(context);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -429,17 +460,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             label: 'Log Out',
             onTap: () => Navigator.pop(context, true),
             size: ButtonSize.sm,
-            color: LPColors.error,
+            color: theme.colorScheme.error,
           ),
         ],
       ),
     );
 
     if (confirm == true && mounted) {
-      await SettingsStorage.clearUserData();
-      if (mounted) {
-        context.go(AppRoutes.landing);
-      }
+      await AuthProvider.instance.logout();
+      // AppRouter will automatically redirect because of refreshListenable
     }
   }
 }

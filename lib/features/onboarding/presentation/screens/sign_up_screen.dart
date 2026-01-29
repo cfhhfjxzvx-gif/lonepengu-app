@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/design/lp_design.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/services/logger_service.dart';
 import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/widgets/responsive_builder.dart';
 
@@ -60,15 +62,54 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
+    LoggerService.auth('Sign-up requested', {
+      'email': _emailController.text.trim(),
+      'name': _nameController.text.trim(),
+    });
 
-    // Simulate API call
-    await Future.delayed(const Duration(milliseconds: 800));
+    try {
+      final success = await AuthProvider.instance.loginWithEmail(
+        _emailController.text.trim(),
+        name: _nameController.text.trim(),
+        password: _passwordController.text,
+      );
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+      if (!mounted) return;
 
-    // Navigate to welcome tour
-    context.go(AppRoutes.welcomeTour);
+      if (success) {
+        LoggerService.auth('Sign-up successful, navigating to home');
+        // Clear potential redirect loops by going to home directly
+        context.go(AppRoutes.home);
+      } else {
+        final error = AuthProvider.instance.errorMessage ?? 'Sign up failed';
+        LoggerService.auth('Sign-up failed', {'error': error});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: LPColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      LoggerService.error('Sign-up screen error', e);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'An unexpected error occurred. Please try again.',
+            ),
+            backgroundColor: LPColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        LoggerService.auth('Sign-up loader stopped');
+      }
+    }
   }
 
   void _handleGoogleSignUp() {

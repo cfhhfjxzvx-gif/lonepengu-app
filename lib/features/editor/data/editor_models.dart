@@ -36,6 +36,7 @@ class EditorLayer {
   double? fontSize;
   FontWeight? fontWeight;
   TextAlign? textAlign;
+  String? fontFamily;
 
   // Image handling
   String? imagePath; // Mobile
@@ -56,6 +57,7 @@ class EditorLayer {
     this.fontSize = 24.0,
     this.fontWeight = FontWeight.normal,
     this.textAlign = TextAlign.center,
+    this.fontFamily,
     this.imagePath,
     this.imageBytes,
     this.imageUrl,
@@ -75,6 +77,7 @@ class EditorLayer {
     double? fontSize,
     FontWeight? fontWeight,
     TextAlign? textAlign,
+    String? fontFamily,
     String? imagePath,
     dynamic imageBytes,
     String? imageUrl,
@@ -93,6 +96,7 @@ class EditorLayer {
       fontSize: fontSize ?? this.fontSize,
       fontWeight: fontWeight ?? this.fontWeight,
       textAlign: textAlign ?? this.textAlign,
+      fontFamily: fontFamily ?? this.fontFamily,
       imagePath: imagePath ?? this.imagePath,
       imageBytes: imageBytes ?? this.imageBytes,
       imageUrl: imageUrl ?? this.imageUrl,
@@ -111,10 +115,11 @@ class EditorLayer {
       'isLocked': isLocked,
       'text': text,
       'shapeType': shapeType?.index,
-      'color': color.value,
+      'color': color.toARGB32(),
       'fontSize': fontSize,
       'fontWeight': fontWeight?.index,
       'textAlign': textAlign?.index,
+      'fontFamily': fontFamily,
       'imagePath': imagePath,
       'imageUrl': imageUrl,
     };
@@ -141,6 +146,7 @@ class EditorLayer {
       textAlign: json['textAlign'] != null
           ? TextAlign.values[json['textAlign'] as int]
           : null,
+      fontFamily: json['fontFamily'] as String?,
       imagePath: json['imagePath'] as String?,
       imageUrl: json['imageUrl'] as String?,
     );

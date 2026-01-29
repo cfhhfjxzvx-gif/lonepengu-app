@@ -1,9 +1,8 @@
-import 'package:lone_pengu/core/design/lp_design.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/constants/app_constants.dart';
+
 import '../../domain/brand_kit_model.dart';
 
 /// Live preview card showing how posts will look with current brand settings
@@ -28,7 +27,7 @@ class BrandPreviewCard extends StatelessWidget {
         border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.08),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.08),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -71,10 +70,10 @@ class BrandPreviewCard extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: brandKit.colors.primary.withOpacity(0.12),
+                  color: brandKit.colors.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: brandKit.colors.primary.withOpacity(0.2),
+                    color: brandKit.colors.primary.withValues(alpha: 0.2),
                   ),
                 ),
                 child: Text(
@@ -134,7 +133,8 @@ class BrandPreviewCard extends StatelessWidget {
           width: 44,
           height: 44,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildDefaultAvatar(theme),
+          errorBuilder: (context, error, stackTrace) =>
+              _buildDefaultAvatar(theme),
         ),
       );
     } else if (!kIsWeb &&
@@ -147,7 +147,8 @@ class BrandPreviewCard extends StatelessWidget {
           width: 44,
           height: 44,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildDefaultAvatar(theme),
+          errorBuilder: (context, error, stackTrace) =>
+              _buildDefaultAvatar(theme),
         ),
       );
     }
@@ -168,7 +169,7 @@ class BrandPreviewCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: brandKit.colors.primary.withOpacity(0.3),
+            color: brandKit.colors.primary.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -200,12 +201,12 @@ class BrandPreviewCard extends StatelessWidget {
             color: color,
             shape: BoxShape.circle,
             border: Border.all(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 blurRadius: 4,
                 offset: const Offset(0, 1),
               ),

@@ -82,7 +82,7 @@ class VoiceChips extends StatelessWidget {
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: color.withOpacity(0.35),
+                        color: color.withValues(alpha: 0.35),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -162,7 +162,7 @@ class FormalitySlider extends StatelessWidget {
             activeTrackColor: theme.colorScheme.primary,
             inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
             thumbColor: theme.colorScheme.primary,
-            overlayColor: theme.colorScheme.primary.withOpacity(0.12),
+            overlayColor: theme.colorScheme.primary.withValues(alpha: 0.12),
             trackHeight: 6,
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
             valueIndicatorShape: const RectangularSliderValueIndicatorShape(),

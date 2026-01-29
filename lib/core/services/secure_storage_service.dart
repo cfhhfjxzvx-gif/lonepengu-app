@@ -202,6 +202,44 @@ class SecureStorageService {
   }
 
   // ═══════════════════════════════════════════════════════════════
+  // OFFLINE AUTH SUPPORT
+  // ═══════════════════════════════════════════════════════════════
+
+  static const String _keyLocalEmail = 'lp_local_email';
+  static const String _keyLocalPassword = 'lp_local_password';
+  static const String _keyLocalName = 'lp_local_name';
+
+  /// Save local user credentials (offline mode)
+  Future<void> saveLocalCredentials({
+    required String email,
+    required String password,
+    String? name,
+  }) async {
+    await _write(_keyLocalEmail, email);
+    await _write(_keyLocalPassword, password); // In real app, hash this!
+    if (name != null) await _write(_keyLocalName, name);
+  }
+
+  /// Verify local credentials
+  Future<bool> verifyLocalCredentials(String email, String password) async {
+    final storedEmail = await _read(_keyLocalEmail);
+    final storedPassword = await _read(_keyLocalPassword);
+
+    if (storedEmail == null || storedPassword == null) return false;
+    return storedEmail.toLowerCase() == email.trim().toLowerCase() &&
+        storedPassword == password;
+  }
+
+  /// Get local user details
+  Future<Map<String, String?>> getLocalUserDetails() async {
+    return {
+      'email': await _read(_keyLocalEmail),
+      'name': await _read(_keyLocalName),
+      'id': 'local_user_id_12345', // Fixed ID for local mode
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════════
   // INTERNAL METHODS
   // ═══════════════════════════════════════════════════════════════
 

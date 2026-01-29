@@ -13,6 +13,9 @@ class EditorCanvas extends StatelessWidget {
   final String? selectedLayerId;
   final Function(String layerId) onLayerSelected;
   final Function(String layerId, Offset delta) onLayerDragged;
+  final Function(String layerId, double scale, double rotation)
+  onLayerScaleRotate;
+  final Function(String layerId)? onLayerEdit;
 
   const EditorCanvas({
     super.key,
@@ -21,6 +24,8 @@ class EditorCanvas extends StatelessWidget {
     required this.selectedLayerId,
     required this.onLayerSelected,
     required this.onLayerDragged,
+    required this.onLayerScaleRotate,
+    this.onLayerEdit,
   });
 
   @override
@@ -76,7 +81,10 @@ class EditorCanvas extends StatelessWidget {
                   layer: layer,
                   isSelected: layer.id == selectedLayerId,
                   onDrag: (delta) => onLayerDragged(layer.id, delta),
+                  onScaleRotate: (scale, rotation) =>
+                      onLayerScaleRotate(layer.id, scale, rotation),
                   onTap: () => onLayerSelected(layer.id),
+                  onDoubleTap: () => onLayerEdit?.call(layer.id),
                 );
               }).toList(),
             ),

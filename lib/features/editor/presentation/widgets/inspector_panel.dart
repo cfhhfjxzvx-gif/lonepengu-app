@@ -5,6 +5,7 @@ import 'add_panel.dart';
 import 'template_panel.dart';
 import 'style_panel.dart';
 import 'layers_panel.dart';
+import '../../../brand_kit/domain/brand_kit_model.dart';
 
 /// Inspector panel for editor
 /// Theme-aware: adapts to light/dark mode
@@ -18,6 +19,7 @@ class InspectorPanel extends StatefulWidget {
   final Function(String id) onDeleteLayer;
   final Function(String id) onToggleLock;
   final bool isMobile;
+  final BrandKit? brandKit;
 
   const InspectorPanel({
     super.key,
@@ -30,6 +32,7 @@ class InspectorPanel extends StatefulWidget {
     required this.onDeleteLayer,
     required this.onToggleLock,
     this.isMobile = false,
+    this.brandKit,
   });
 
   @override
@@ -104,6 +107,7 @@ class _InspectorPanelState extends State<InspectorPanel>
                       type: LayerType.text,
                       position: const Offset(50, 50),
                       text: 'New Text',
+                      // Default to dark/light text, but could use brand secondary
                       color: colorScheme.onSurface,
                     ),
                   ),
@@ -113,7 +117,9 @@ class _InspectorPanelState extends State<InspectorPanel>
                       type: LayerType.shape,
                       position: const Offset(50, 50),
                       shapeType: ShapeType.rectangle,
-                      color: LPColors.primary,
+                      // Use Brand Primary if available, else standard Blue
+                      color:
+                          widget.brandKit?.colors.primary ?? LPColors.primary,
                     ),
                   ),
                   onAddImage: () {
@@ -137,6 +143,7 @@ class _InspectorPanelState extends State<InspectorPanel>
                         )
                       : null,
                   onUpdateLayer: widget.onUpdateLayer,
+                  brandKit: widget.brandKit,
                 ),
                 LayersPanel(
                   layers: widget.layers,

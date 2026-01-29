@@ -226,7 +226,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
             size: 64,
             color: Theme.of(
               context,
-            ).colorScheme.onSurfaceVariant.withOpacity(0.3),
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
           ),
           Gap(height: LPSpacing.md),
           Text(

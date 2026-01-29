@@ -46,7 +46,7 @@ class ColorSwatchPicker extends StatelessWidget {
           border: Border.all(color: theme.colorScheme.outlineVariant),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.1 : 0.05),
+              color: Colors.black.withValues(alpha: isDark ? 0.1 : 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -63,12 +63,12 @@ class ColorSwatchPicker extends StatelessWidget {
                 color: selectedColor,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: selectedColor.withOpacity(0.3),
+                    color: selectedColor.withValues(alpha: 0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -183,12 +183,14 @@ class ColorSwatchPicker extends StatelessWidget {
                       border: Border.all(
                         color: isSelected
                             ? theme.colorScheme.primary
-                            : Colors.white.withOpacity(0.1),
+                            : Colors.white.withValues(alpha: 0.1),
                         width: isSelected ? 3 : 1,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: color.withOpacity(isSelected ? 0.4 : 0.2),
+                          color: color.withValues(
+                            alpha: isSelected ? 0.4 : 0.2,
+                          ),
                           blurRadius: isSelected ? 12 : 6,
                           offset: const Offset(0, 4),
                         ),

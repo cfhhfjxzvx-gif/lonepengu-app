@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/responsive_builder.dart';
+import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/constants/app_constants.dart';
 
 /// Premium animated splash screen for LonePengu
 class SplashScreen extends StatefulWidget {
@@ -27,11 +28,18 @@ class _SplashScreenState extends State<SplashScreen>
   // Text Selection
   final String _brandName = 'LonePengu';
 
+  Timer? _safetyTimer;
+
   @override
   void initState() {
     super.initState();
     _setupAnimations();
     _startAnimationSequence();
+
+    // Safety timeout - force navigation after 3 seconds if animation hangs
+    _safetyTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) _navigateToLanding();
+    });
   }
 
   void _setupAnimations() {
@@ -97,13 +105,20 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateToLanding() {
-    if (mounted) {
+    _safetyTimer?.cancel();
+    if (!mounted) return;
+
+    final isAuthenticated = AuthProvider.instance.isAuthenticated;
+    if (isAuthenticated) {
+      context.go(AppRoutes.home);
+    } else {
       context.go(AppRoutes.landing);
     }
   }
 
   @override
   void dispose() {
+    _safetyTimer?.cancel();
     _logoController.dispose();
     _textController.dispose();
     _shimmerController.dispose();

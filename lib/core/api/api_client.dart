@@ -37,17 +37,26 @@ class ApiClient {
     String url, {
     Map<String, String>? queryParams,
     T Function(dynamic json)? fromJson,
+    int retries = 1,
   }) async {
-    try {
-      final uri = Uri.parse(url).replace(queryParameters: queryParams);
-      final response = await http
-          .get(uri, headers: _getHeaders())
-          .timeout(Duration(seconds: ApiConfig.requestTimeout));
+    int attempts = 0;
+    while (attempts <= retries) {
+      try {
+        final uri = Uri.parse(url).replace(queryParameters: queryParams);
+        final response = await http
+            .get(uri, headers: _getHeaders())
+            .timeout(Duration(seconds: ApiConfig.requestTimeout));
 
-      return _handleResponse<T>(response, fromJson);
-    } catch (e) {
-      return _handleError<T>(e);
+        return _handleResponse<T>(response, fromJson);
+      } catch (e) {
+        attempts++;
+        if (attempts > retries) {
+          return _handleError<T>(e);
+        }
+        await Future.delayed(Duration(seconds: 1)); // Small delay before retry
+      }
     }
+    return ApiResponse.error('Maximum retries exceeded');
   }
 
   /// POST request
@@ -55,20 +64,29 @@ class ApiClient {
     String url, {
     Map<String, dynamic>? body,
     T Function(dynamic json)? fromJson,
+    int retries = 1,
   }) async {
-    try {
-      final response = await http
-          .post(
-            Uri.parse(url),
-            headers: _getHeaders(),
-            body: body != null ? jsonEncode(body) : null,
-          )
-          .timeout(Duration(seconds: ApiConfig.requestTimeout));
+    int attempts = 0;
+    while (attempts <= retries) {
+      try {
+        final response = await http
+            .post(
+              Uri.parse(url),
+              headers: _getHeaders(),
+              body: body != null ? jsonEncode(body) : null,
+            )
+            .timeout(Duration(seconds: ApiConfig.requestTimeout));
 
-      return _handleResponse<T>(response, fromJson);
-    } catch (e) {
-      return _handleError<T>(e);
+        return _handleResponse<T>(response, fromJson);
+      } catch (e) {
+        attempts++;
+        if (attempts > retries) {
+          return _handleError<T>(e);
+        }
+        await Future.delayed(Duration(seconds: 1)); // Small delay before retry
+      }
     }
+    return ApiResponse.error('Maximum retries exceeded');
   }
 
   /// PUT request
@@ -76,36 +94,54 @@ class ApiClient {
     String url, {
     Map<String, dynamic>? body,
     T Function(dynamic json)? fromJson,
+    int retries = 1,
   }) async {
-    try {
-      final response = await http
-          .put(
-            Uri.parse(url),
-            headers: _getHeaders(),
-            body: body != null ? jsonEncode(body) : null,
-          )
-          .timeout(Duration(seconds: ApiConfig.requestTimeout));
+    int attempts = 0;
+    while (attempts <= retries) {
+      try {
+        final response = await http
+            .put(
+              Uri.parse(url),
+              headers: _getHeaders(),
+              body: body != null ? jsonEncode(body) : null,
+            )
+            .timeout(Duration(seconds: ApiConfig.requestTimeout));
 
-      return _handleResponse<T>(response, fromJson);
-    } catch (e) {
-      return _handleError<T>(e);
+        return _handleResponse<T>(response, fromJson);
+      } catch (e) {
+        attempts++;
+        if (attempts > retries) {
+          return _handleError<T>(e);
+        }
+        await Future.delayed(Duration(seconds: 1));
+      }
     }
+    return ApiResponse.error('Maximum retries exceeded');
   }
 
   /// DELETE request
   Future<ApiResponse<T>> delete<T>(
     String url, {
     T Function(dynamic json)? fromJson,
+    int retries = 1,
   }) async {
-    try {
-      final response = await http
-          .delete(Uri.parse(url), headers: _getHeaders())
-          .timeout(Duration(seconds: ApiConfig.requestTimeout));
+    int attempts = 0;
+    while (attempts <= retries) {
+      try {
+        final response = await http
+            .delete(Uri.parse(url), headers: _getHeaders())
+            .timeout(Duration(seconds: ApiConfig.requestTimeout));
 
-      return _handleResponse<T>(response, fromJson);
-    } catch (e) {
-      return _handleError<T>(e);
+        return _handleResponse<T>(response, fromJson);
+      } catch (e) {
+        attempts++;
+        if (attempts > retries) {
+          return _handleError<T>(e);
+        }
+        await Future.delayed(Duration(seconds: 1));
+      }
     }
+    return ApiResponse.error('Maximum retries exceeded');
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -123,8 +159,10 @@ class ApiClient {
     http.Response response,
     T Function(dynamic json)? fromJson,
   ) {
-    LoggerService.debug(
-      'API Response [${response.statusCode}]: ${response.request?.url}',
+    LoggerService.apiResponse(
+      response.request?.url.toString() ?? '',
+      response.statusCode,
+      response.body,
     );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -132,13 +170,22 @@ class ApiClient {
         return ApiResponse.success(null as T);
       }
 
-      final json = jsonDecode(response.body);
+      try {
+        final json = jsonDecode(response.body);
 
-      if (fromJson != null) {
-        return ApiResponse.success(fromJson(json));
+        if (fromJson != null) {
+          return ApiResponse.success(fromJson(json));
+        }
+
+        return ApiResponse.success(json as T);
+      } catch (e) {
+        LoggerService.error('JSON Decode Error', e);
+        return ApiResponse.error(
+          'Failed to parse server response',
+          errorCode: 'PARSE_ERROR',
+          statusCode: response.statusCode,
+        );
       }
-
-      return ApiResponse.success(json as T);
     }
 
     // Handle error responses
@@ -146,9 +193,11 @@ class ApiClient {
     String? errorCode;
 
     try {
-      final json = jsonDecode(response.body);
-      message = json['message'] ?? json['error'] ?? message;
-      errorCode = json['code'];
+      if (response.body.isNotEmpty) {
+        final json = jsonDecode(response.body);
+        message = json['message'] ?? json['error'] ?? message;
+        errorCode = json['code'];
+      }
     } catch (_) {
       message = response.reasonPhrase ?? message;
     }
@@ -169,16 +218,18 @@ class ApiClient {
     String errorCode = 'NETWORK_ERROR';
 
     if (error is SocketException) {
-      message = 'No internet connection';
-      errorCode = 'NO_INTERNET';
+      // Don't just assume no internet; it could be server down or wrong URL
+      message =
+          'Unable to connect to server. Please check your connection or try again later.';
+      errorCode = 'CONNECTION_FAILED';
     } else if (error is TimeoutException) {
-      message = 'Request timed out';
+      message = 'Request timed out. The server might be busy.';
       errorCode = 'TIMEOUT';
     } else if (error is FormatException) {
       message = 'Invalid response format';
       errorCode = 'PARSE_ERROR';
     } else {
-      message = error.toString();
+      message = 'An unexpected error occurred: ${error.toString()}';
     }
 
     return ApiResponse.error(message, errorCode: errorCode);

@@ -1,7 +1,4 @@
 import 'dart:math';
-import 'dart:typed_data';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'content_models.dart';
 
 /// Mocked AI Content Generation Service
@@ -56,7 +53,7 @@ class AiContentService {
     Function(double)? onProgress,
   }) async {
     // Simulate API delay with progress (5-10 seconds)
-    final totalDuration = 5000 + _random.nextInt(5000);
+    final totalDuration = 5000 + _random.nextInt(3000);
     const steps = 20;
     final stepDuration = totalDuration ~/ steps;
 
@@ -68,24 +65,20 @@ class AiContentService {
     final variants = _generateCaptionVariants(request);
     final hashtags = _generateHashtags(request);
 
-    // For universal web/mobile compatibility, we simulate fetching actual bytes
-    // In a real app, this would be the response from from OpenAI/Stability/etc.
-    Uint8List? bytes;
-    try {
-      final ByteData data = await rootBundle.load(
-        'assets/images/lonepengu_logo.png',
-      );
-      bytes = data.buffer.asUint8List();
-    } catch (e) {
-      debugPrint('Error loading mock image: $e');
-    }
+    // Use a high-quality random image that matches the requested aspect ratio
+    final width = request.aspectRatio?.value != null
+        ? (1024 * request.aspectRatio!.value).toInt()
+        : 1024;
+    final height = 1024;
+
+    final imageUrl =
+        'https://picsum.photos/seed/${request.promptText.hashCode}/$width/$height';
 
     return GeneratedContent(
       mode: ContentMode.image,
       captionVariants: variants,
       hashtags: hashtags,
-      imageUrl: 'https://picsum.photos/800/800?random=${_random.nextInt(1000)}',
-      imageBytes: bytes,
+      imageUrl: imageUrl,
       generatedAt: DateTime.now(),
     );
   }
@@ -125,8 +118,8 @@ class AiContentService {
     GenerationRequest request, {
     Function(double)? onProgress,
   }) async {
-    // Simulate API delay with progress (20-40 seconds)
-    final totalDuration = 20000 + _random.nextInt(20000);
+    // Simulate API delay with progress (10-15 seconds for demonstration)
+    final totalDuration = 10000 + _random.nextInt(5000);
     const steps = 50;
     final stepDuration = totalDuration ~/ steps;
 
@@ -143,7 +136,7 @@ class AiContentService {
       captionVariants: variants,
       hashtags: hashtags,
       videoUrl:
-          'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
+          'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
       generatedAt: DateTime.now(),
     );
   }
@@ -178,32 +171,59 @@ class AiContentService {
   static List<CaptionVariant> _generateCaptionVariants(
     GenerationRequest request,
   ) {
-    final topic = request.promptText.isNotEmpty
-        ? request.promptText
-        : 'your amazing product';
-
+    final intent = _interpretIntent(request.promptText);
     final cta = request.cta.displayName;
 
     return [
       CaptionVariant(
-        label: 'Variant A',
+        label: 'Balanced',
         description: 'Recommended',
-        caption: _getVariantACaption(topic, request.tone, cta),
+        caption: _getVariantACaption(intent, request.tone, cta),
         hashtags: _generateHashtags(request).take(8).toList(),
       ),
       CaptionVariant(
-        label: 'Variant B',
-        description: 'More salesy',
-        caption: _getVariantBCaption(topic, request.tone, cta),
+        label: 'Direct',
+        description: 'Conversion focused',
+        caption: _getVariantBCaption(intent, request.tone, cta),
         hashtags: _generateHashtags(request).take(10).toList(),
       ),
       CaptionVariant(
-        label: 'Variant C',
-        description: 'More casual',
-        caption: _getVariantCCaption(topic, request.tone, cta),
+        label: 'Storytelling',
+        description: 'Casual & engaging',
+        caption: _getVariantCCaption(intent, request.tone, cta),
         hashtags: _generateHashtags(request).take(6).toList(),
       ),
     ];
+  }
+
+  static String _interpretIntent(String prompt) {
+    // Remove common command words
+    String cleaned = prompt;
+    final stopWords = [
+      'write',
+      'create',
+      'generate',
+      'a post about',
+      'a caption for',
+      'about',
+      'for',
+      'social media',
+      'post',
+      'caption',
+    ];
+
+    for (var word in stopWords) {
+      cleaned = cleaned.replaceAll(
+        RegExp('\\b$word\\b', caseSensitive: false),
+        '',
+      );
+    }
+
+    cleaned = cleaned.trim();
+    if (cleaned.isEmpty) return 'something amazing';
+
+    // Capitalize first letter
+    return cleaned[0].toUpperCase() + cleaned.substring(1);
   }
 
   static String _getVariantACaption(

@@ -189,11 +189,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           SnackBar(
             content: Row(
               children: [
-                Icon(
-                  Icons.check_circle_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
                 Gap(width: LPSpacing.sm),
                 Expanded(
                   child: Text(
@@ -316,15 +312,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         padding: LPSpacing.page,
         child: Column(
           children: [
-            Icon(
-              Icons.error_outline_rounded,
-              size: 40,
-              color: LPColors.error,
-            ),
+            Icon(Icons.error_outline_rounded, size: 40, color: LPColors.error),
             Gap(height: LPSpacing.sm),
             Text(
               error,
-              style: LPText.bodyMD.copyWith(color: LPColors.textSecondary),
+              style: LPText.bodyMD.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
             const Gap(height: LPSpacing.md),

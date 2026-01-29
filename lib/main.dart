@@ -2,22 +2,13 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import 'core/design/lp_design.dart';
 import 'core/providers/auth_provider.dart';
 import 'core/services/app_lifecycle_observer.dart';
 import 'core/services/logger_service.dart';
-import 'core/services/secure_storage_service.dart';
 import 'core/widgets/error_boundary.dart';
 import 'core/theme/theme_manager.dart';
+import 'core/widgets/app_bootstrap.dart'; // Added
 import 'routes/app_router.dart';
-
-// Feature Storage
-import 'features/content_studio/data/draft_storage.dart';
-import 'features/scheduler/data/scheduler_storage.dart';
-import 'features/settings/data/settings_storage.dart';
-import 'features/account_management/data/account_storage.dart';
-import 'features/notifications/data/notification_storage.dart';
 
 void main() async {
   // ═══════════════════════════════════════════════════════════════
@@ -48,41 +39,13 @@ void main() async {
 
       LoggerService.info('LonePengu App Starting');
 
-      // Initialize secure storage first (required for auth)
-      await SecureStorageService.instance.init();
-
-      // Initialize Feature Storage
-      await Future.wait([
-        DraftStorage.init(),
-        SchedulerStorage.init(),
-        SettingsStorage.init(),
-        AccountStorage.init(),
-        NotificationStorage.init(),
-      ]);
-
-      // Initialize Theme
-      await ThemeManager.instance.init();
-
-      // Initialize App Lifecycle Observer (prevents restart issues)
-      AppLifecycleObserver.instance.init(
-        onResume: () {
-          LoggerService.lifecycle('App resumed - maintaining state');
-          // DO NOT reinitialize anything here
-          // State is already preserved
-        },
-        onPause: () {
-          LoggerService.lifecycle('App paused - saving state');
-          // State is automatically saved by the observer
-        },
-      );
-
-      LoggerService.info('Initialization complete');
+      LoggerService.info('LonePengu App Starting');
 
       // ═══════════════════════════════════════════════════════════════
-      // RUN APP
+      // RUN APP IMMEIDATELY
       // ═══════════════════════════════════════════════════════════════
 
-      runApp(const LonePenguApp());
+      runApp(const AppBootstrap(child: LonePenguApp()));
     },
     (error, stackTrace) {
       // Handle uncaught async errors
@@ -145,8 +108,8 @@ class _AppContent extends StatelessWidget {
             debugShowCheckedModeBanner: false,
 
             // Theme
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
+            theme: themeManager.lightTheme,
+            darkTheme: themeManager.darkTheme,
             themeMode: themeManager.themeMode,
 
             // Router

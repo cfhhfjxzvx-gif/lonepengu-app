@@ -45,6 +45,7 @@ dependencies:
   flutter_secure_storage: ^9.2.2
   provider: ^6.1.2
   connectivity_plus: ^6.1.0
+  palette_generator: ^0.3.3+7
 
 dev_dependencies:
   flutter_test:

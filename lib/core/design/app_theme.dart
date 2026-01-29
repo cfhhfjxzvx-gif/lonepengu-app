@@ -29,6 +29,7 @@ class AppTheme {
 
     // Premium color assignments based on mode
     final primaryColor = LPColors.primary;
+
     final backgroundColor = isDark
         ? LPColors.backgroundDark
         : LPColors.background;
@@ -62,12 +63,27 @@ class AppTheme {
         onTertiary: Colors.white,
         surface: surfaceColor,
         onSurface: textPrimary,
+        surfaceContainerLow: isDark
+            ? LPColors.backgroundDark
+            : LPColors.surface,
+        surfaceContainer: isDark ? LPColors.cardDark : Colors.white,
+        surfaceContainerHigh: isDark
+            ? LPColors.cardElevatedDark
+            : LPColors.iceWhite,
+        outline: borderColor,
+        outlineVariant: isDark
+            ? LPColors.borderLightDark
+            : LPColors.borderLight,
         error: LPColors.error,
         onError: Colors.white,
       ),
 
       // Typography
-      textTheme: LPText.textTheme,
+      textTheme: LPText.textTheme.apply(
+        bodyColor: textPrimary,
+        displayColor: textPrimary,
+        decorationColor: textPrimary,
+      ),
 
       // AppBar - matches background for seamless look
       appBarTheme: AppBarTheme(
@@ -207,6 +223,16 @@ class AppTheme {
 
       // Icon
       iconTheme: IconThemeData(color: textSecondary, size: 24),
+
+      // Bottom Sheets
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: cardColor,
+        surfaceTintColor: Colors.transparent,
+        modalBackgroundColor: cardColor,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+      ),
 
       // Tooltip
       tooltipTheme: TooltipThemeData(
