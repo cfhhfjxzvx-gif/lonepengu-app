@@ -81,6 +81,26 @@ class _EditorScreenState extends State<EditorScreen>
           );
 
           _layers.add(layer);
+
+          // FIX: Add caption as a text layer if available
+          final initialText = args.generatedCaption ?? args.promptText;
+          if (initialText != null && initialText.isNotEmpty) {
+            final textLayerId =
+                'gen_txt_${DateTime.now().millisecondsSinceEpoch}';
+            _layers.add(
+              EditorLayer(
+                id: textLayerId,
+                type: LayerType.text,
+                position: const Offset(50, 250),
+                text: initialText,
+                fontSize: 28,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                textAlign: TextAlign.center,
+              ),
+            );
+          }
+
           _selectedLayerId = id;
 
           Future.delayed(const Duration(milliseconds: 100), () {

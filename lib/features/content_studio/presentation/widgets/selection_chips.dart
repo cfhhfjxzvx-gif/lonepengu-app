@@ -55,9 +55,7 @@ class PlatformChips extends StatelessWidget {
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: _getPlatformColor(
-                          platform,
-                        ).withValues(alpha: 0.3),
+                        color: _getPlatformColor(platform).withOpacity(0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),

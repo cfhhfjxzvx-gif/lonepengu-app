@@ -27,7 +27,7 @@ class LPText {
       fontWeight: fontWeight,
       height: height,
       letterSpacing: letterSpacing,
-      color: color ?? LPColors.textPrimary,
+      color: color,
     );
   }
 
@@ -146,12 +146,8 @@ class LPText {
   // ═══════════════════════════════════════════
 
   /// Caption - small helper text
-  static TextStyle get caption => _inter(
-    fontSize: 12,
-    fontWeight: regular,
-    height: 1.4,
-    color: LPColors.textSecondary,
-  );
+  static TextStyle get caption =>
+      _inter(fontSize: 12, fontWeight: regular, height: 1.4);
 
   /// Overline - uppercase labels
   static TextStyle get overline => _inter(
@@ -159,7 +155,6 @@ class LPText {
     fontWeight: semiBold,
     height: 1.6,
     letterSpacing: 1.5,
-    color: LPColors.textSecondary,
   );
 
   /// Button text
@@ -187,20 +182,12 @@ class LPText {
   );
 
   /// Link text
-  static TextStyle get link => _inter(
-    fontSize: 14,
-    fontWeight: medium,
-    height: 1.5,
-    color: LPColors.primary,
-  );
+  static TextStyle get link =>
+      _inter(fontSize: 14, fontWeight: medium, height: 1.5);
 
   /// Error/Hint text
-  static TextStyle get hint => _inter(
-    fontSize: 12,
-    fontWeight: regular,
-    height: 1.4,
-    color: LPColors.textTertiary,
-  );
+  static TextStyle get hint =>
+      _inter(fontSize: 12, fontWeight: regular, height: 1.4);
 
   // ═══════════════════════════════════════════
   // HELPER METHODS

@@ -6,6 +6,7 @@ import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/services/logger_service.dart';
 import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/widgets/responsive_builder.dart';
+import '../../../../routes/root_router.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -64,7 +65,14 @@ class _SignInScreenState extends State<SignInScreen> {
 
       if (success) {
         LoggerService.auth('Sign-in successful, navigating to home');
-        context.go(AppRoutes.home);
+        // MANDATORY FIX: Direct navigation to RootRouter
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => RootRouter()),
+            (route) => false,
+          );
+        }
       } else {
         final error = AuthProvider.instance.errorMessage ?? 'Sign in failed';
         LoggerService.auth('Sign-in failed', {'error': error});

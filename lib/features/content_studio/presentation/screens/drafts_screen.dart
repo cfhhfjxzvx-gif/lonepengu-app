@@ -344,8 +344,6 @@ class _DraftsScreenState extends State<DraftsScreen> {
   Color _getModeColor(ContentMode mode) {
     final colorScheme = Theme.of(context).colorScheme;
     switch (mode) {
-      case ContentMode.auto:
-        return colorScheme.secondary;
       case ContentMode.caption:
         return colorScheme.primary;
       case ContentMode.image:

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/design/lp_design.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/widgets/responsive_builder.dart';
+import 'sign_in_screen.dart';
+import 'sign_up_screen.dart';
 
 class LandingScreen extends StatelessWidget {
   const LandingScreen({super.key});
@@ -62,8 +63,10 @@ class LandingScreen extends StatelessWidget {
         Gap(height: LPSpacing.md),
         AppPill(
           label: AppConstants.socialPlatforms,
-          backgroundColor: LPColors.grey100,
-          textColor: LPColors.textSecondary,
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest,
+          textColor: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ],
     );
@@ -130,13 +133,23 @@ class LandingScreen extends StatelessWidget {
           AppButton.primary(
             label: 'Get Started',
             icon: Icons.arrow_forward_rounded,
-            onTap: () => context.push(AppRoutes.signUp),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SignUpScreen()),
+              );
+            },
             fullWidth: true,
           ),
           const Gap(height: LPSpacing.md),
           AppButton.secondary(
             label: 'Sign In',
-            onTap: () => context.push(AppRoutes.signIn),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SignInScreen()),
+              );
+            },
             fullWidth: true,
           ),
         ],

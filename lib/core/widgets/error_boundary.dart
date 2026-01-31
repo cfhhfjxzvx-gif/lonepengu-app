@@ -69,34 +69,48 @@ class _DefaultErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Material(
+      color: theme.scaffoldBackgroundColor,
       child: Container(
-        color: LPColors.background,
         padding: const EdgeInsets.all(24),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.error_outline_rounded,
-                size: 64,
-                color: LPColors.error,
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.error.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.report_gmailerrorred_rounded,
+                  size: 64,
+                  color: theme.colorScheme.error,
+                ),
               ),
-              const Gap(height: 16),
+              const Gap(height: 32),
               Text(
                 'Something went wrong',
-                style: LPText.hLG,
+                style: LPText.hLG.copyWith(color: theme.colorScheme.onSurface),
                 textAlign: TextAlign.center,
               ),
-              const Gap(height: 8),
+              const Gap(height: 12),
               Text(
-                'An unexpected error occurred. Please try again.',
-                style: LPText.bodySM.copyWith(color: LPColors.textSecondary),
+                'An unexpected error occurred in the application layer. Our team has been notified.',
+                style: LPText.bodySM.copyWith(
+                  color: isDark
+                      ? LPColors.textSecondaryDark
+                      : LPColors.textSecondary,
+                ),
                 textAlign: TextAlign.center,
               ),
-              const Gap(height: 24),
+              const Gap(height: 48),
               AppButton.primary(
-                label: 'Try Again',
+                label: 'Restore Workspace',
                 icon: Icons.refresh_rounded,
                 onTap: onRetry,
               ),

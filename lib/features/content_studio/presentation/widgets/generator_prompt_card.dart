@@ -106,14 +106,14 @@ class GeneratorPromptCard extends StatelessWidget {
         boxShadow: isDark
             ? [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
+                  color: Colors.black.withOpacity(0.3),
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
               ]
             : [
                 BoxShadow(
-                  color: LPColors.textPrimary.withValues(alpha: 0.05),
+                  color: LPColors.textPrimary.withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
@@ -144,10 +144,7 @@ class GeneratorPromptCard extends StatelessWidget {
               ),
             ),
           ),
-          if (mode == ContentMode.auto && detectedIntent != null) ...[
-            const SizedBox(height: 12),
-            _buildDetectedIntentChip(context),
-          ],
+
           const SizedBox(height: 16),
 
           // Row with Industry and Goal dropdowns
@@ -378,104 +375,7 @@ class GeneratorPromptCard extends StatelessWidget {
         );
       case ContentMode.caption:
         return const SizedBox.shrink();
-      case ContentMode.auto:
-        return const SizedBox.shrink();
     }
-  }
-
-  Widget _buildDetectedIntentChip(BuildContext context) {
-    if (detectedIntent == null) return const SizedBox.shrink();
-
-    final intent = detectedIntent!.intent;
-    final confidence = (detectedIntent!.confidence * 100).toInt();
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: LPColors.accent.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: LPColors.accent.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'Detected: ${intent.displayName} ($confidence%)',
-            style: const TextStyle(
-              color: LPColors.accent,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(width: 8),
-          InkWell(
-            onTap: () => _showIntentSelector(context),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: LPColors.accent,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'Change',
-                style: TextStyle(color: Colors.white, fontSize: 10),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showIntentSelector(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: isDark ? LPColors.cardDark : LPColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'What do you want to generate?',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ...[
-                ContentMode.caption,
-                ContentMode.image,
-                ContentMode.carousel,
-                ContentMode.video,
-              ].map((m) {
-                return ListTile(
-                  leading: Text(m.icon, style: const TextStyle(fontSize: 20)),
-                  title: Text(
-                    m.displayName,
-                    style: TextStyle(color: theme.colorScheme.onSurface),
-                  ),
-                  onTap: () {
-                    onIntentChanged?.call(m);
-                    Navigator.pop(context);
-                  },
-                );
-              }),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   Widget _buildSectionTitle(BuildContext context, String title) {

@@ -2,7 +2,35 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 /// Content generation mode
-enum ContentMode { auto, caption, image, carousel, video }
+enum ContentMode { caption, image, carousel, video }
+
+extension ContentModeX on ContentMode {
+  String get displayName {
+    switch (this) {
+      case ContentMode.caption:
+        return 'Caption';
+      case ContentMode.image:
+        return 'Image';
+      case ContentMode.carousel:
+        return 'Carousel';
+      case ContentMode.video:
+        return 'Motion Video';
+    }
+  }
+
+  String get icon {
+    switch (this) {
+      case ContentMode.caption:
+        return '✏️';
+      case ContentMode.image:
+        return '🖼️';
+      case ContentMode.carousel:
+        return '📑';
+      case ContentMode.video:
+        return '🎬';
+    }
+  }
+}
 
 /// Social platform
 enum SocialPlatform { instagram, facebook, linkedin, x }
@@ -35,37 +63,6 @@ enum VideoStyle { modern, clean, kineticText, productFocus }
 enum VideoDuration { fifteenSec, thirtySec, sixtySec }
 
 /// Extensions for enum display names
-extension ContentModeX on ContentMode {
-  String get displayName {
-    switch (this) {
-      case ContentMode.auto:
-        return 'Auto';
-      case ContentMode.caption:
-        return 'Caption';
-      case ContentMode.image:
-        return 'Image';
-      case ContentMode.carousel:
-        return 'Carousel';
-      case ContentMode.video:
-        return 'Motion Video';
-    }
-  }
-
-  String get icon {
-    switch (this) {
-      case ContentMode.auto:
-        return '🪄';
-      case ContentMode.caption:
-        return '✏️';
-      case ContentMode.image:
-        return '🖼️';
-      case ContentMode.carousel:
-        return '📑';
-      case ContentMode.video:
-        return '🎬';
-    }
-  }
-}
 
 extension SocialPlatformX on SocialPlatform {
   String get displayName {
@@ -381,6 +378,40 @@ class GenerationRequest {
     this.duration,
     this.videoStyle,
   });
+
+  GenerationRequest copyWith({
+    ContentMode? mode,
+    String? promptText,
+    String? industry,
+    ContentGoal? goal,
+    List<SocialPlatform>? platforms,
+    ContentTone? tone,
+    ContentLength? length,
+    CtaType? cta,
+    ImageStyle? imageStyle,
+    AppAspectRatio? aspectRatio,
+    int? slideCount,
+    CarouselStyle? carouselStyle,
+    VideoDuration? duration,
+    VideoStyle? videoStyle,
+  }) {
+    return GenerationRequest(
+      mode: mode ?? this.mode,
+      promptText: promptText ?? this.promptText,
+      industry: industry ?? this.industry,
+      goal: goal ?? this.goal,
+      platforms: platforms ?? this.platforms,
+      tone: tone ?? this.tone,
+      length: length ?? this.length,
+      cta: cta ?? this.cta,
+      imageStyle: imageStyle ?? this.imageStyle,
+      aspectRatio: aspectRatio ?? this.aspectRatio,
+      slideCount: slideCount ?? this.slideCount,
+      carouselStyle: carouselStyle ?? this.carouselStyle,
+      duration: duration ?? this.duration,
+      videoStyle: videoStyle ?? this.videoStyle,
+    );
+  }
 }
 
 /// Generated content result
@@ -406,8 +437,63 @@ class GeneratedContent {
   });
 }
 
+/// User Intent Analysis result
+class UserIntent {
+  final String subject;
+  final String style;
+  final String emotion;
+  final String contentIdea;
+  final String imagePrompt;
+  final String videoPrompt;
+  final List<String> carouselTopics;
+  final String targetAudience;
+
+  const UserIntent({
+    required this.subject,
+    required this.style,
+    required this.emotion,
+    required this.contentIdea,
+    required this.imagePrompt,
+    required this.videoPrompt,
+    required this.carouselTopics,
+    required this.targetAudience,
+  });
+
+  factory UserIntent.defaultIntent(String rawInput) {
+    return UserIntent(
+      subject: rawInput,
+      style: 'Professional',
+      emotion: 'Positive',
+      contentIdea: 'A post about $rawInput',
+      imagePrompt: 'High quality realistic image related to $rawInput',
+      videoPrompt: 'Cinematic motion video of $rawInput',
+      carouselTopics: [
+        'Introduction to $rawInput',
+        'Key Benefits',
+        'Next Steps',
+      ],
+      targetAudience: 'General Audience',
+    );
+  }
+
+  factory UserIntent.fromJson(Map<String, dynamic> json) {
+    return UserIntent(
+      subject: json['subject'] ?? '',
+      style: json['style'] ?? 'Modern',
+      emotion: json['emotion'] ?? 'Inspirational',
+      contentIdea: json['contentIdea'] ?? '',
+      imagePrompt: json['imagePrompt'] ?? '',
+      videoPrompt: json['videoPrompt'] ?? '',
+      carouselTopics: List<String>.from(json['carouselTopics'] ?? []),
+      targetAudience: json['targetAudience'] ?? 'Social Media Users',
+    );
+  }
+}
+
 /// Draft model for saved content
 class ContentDraft {
+  // ... existing code ...
+
   final String id;
   final DateTime createdAt;
   final ContentMode mode;

@@ -10,6 +10,8 @@ class SettingsStorage {
   static const String _keyScheduledAlerts = 'settings_scheduled_alerts';
   static const String _keyWeeklySummary = 'settings_weekly_summary';
   static const String _keyThemeMode = 'settings_theme_mode';
+  static const String _keyOnboardingCompleted = 'settings_onboarding_completed';
+  static const String _keyBrandKitCompleted = 'settings_brand_kit_completed';
 
   /// Initialize storage
   static Future<void> init() async {
@@ -77,6 +79,34 @@ class SettingsStorage {
   static Future<void> setThemeMode(String value) async {
     final prefs = await _getPrefs();
     await prefs.setString(_keyThemeMode, value);
+  }
+
+  // ============================================
+  // ONBOARDING PREFERENCES
+  // ============================================
+
+  /// Check if onboarding is completed
+  static Future<bool> isOnboardingCompleted() async {
+    final prefs = await _getPrefs();
+    return prefs.getBool(_keyOnboardingCompleted) ?? false;
+  }
+
+  /// Set onboarding completed
+  static Future<void> setOnboardingCompleted(bool value) async {
+    final prefs = await _getPrefs();
+    await prefs.setBool(_keyOnboardingCompleted, value);
+  }
+
+  /// Check if Brand Kit is completed
+  static Future<bool> isBrandKitCompleted() async {
+    final prefs = await _getPrefs();
+    return prefs.getBool(_keyBrandKitCompleted) ?? false;
+  }
+
+  /// Set Brand Kit completed
+  static Future<void> setBrandKitCompleted(bool value) async {
+    final prefs = await _getPrefs();
+    await prefs.setBool(_keyBrandKitCompleted, value);
   }
 
   // ============================================

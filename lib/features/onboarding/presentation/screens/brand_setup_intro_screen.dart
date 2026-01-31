@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/design/lp_design.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/widgets/responsive_builder.dart';
+import '../../../../core/providers/auth_provider.dart';
+import '../../../../routes/root_router.dart';
+import '../../../../features/brand_kit/presentation/screens/brand_kit_screen.dart';
 
 class BrandSetupIntroScreen extends StatelessWidget {
   const BrandSetupIntroScreen({super.key});
@@ -67,13 +69,35 @@ class BrandSetupIntroScreen extends StatelessWidget {
                     AppButton.primary(
                       label: 'Start Setup',
                       icon: Icons.arrow_forward_rounded,
-                      onTap: () => context.push(AppRoutes.brandKit),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const BrandKitScreen(),
+                          ),
+                        );
+                      },
                       fullWidth: true,
                     ),
                     Gap.md,
                     Center(
                       child: TextButton(
-                        onPressed: () => context.push(AppRoutes.home),
+                        onPressed: () async {
+                          // Skip marks onboarding as completed
+                          final auth = Provider.of<AuthProvider>(
+                            context,
+                            listen: false,
+                          );
+                          await auth.completeOnboarding();
+
+                          if (context.mounted) {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (_) => RootRouter()),
+                              (route) => false,
+                            );
+                          }
+                        },
                         child: Text(
                           'Skip for now',
                           style: LPText.labelMD.copyWith(

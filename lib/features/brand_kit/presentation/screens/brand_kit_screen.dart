@@ -2,12 +2,12 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:palette_generator/palette_generator.dart';
 import '../../../../core/design/lp_design.dart';
-import '../../../../core/constants/app_constants.dart';
-
+import '../../../../core/providers/auth_provider.dart';
 import '../../domain/brand_kit_model.dart';
 import '../../data/brand_kit_storage.dart';
 import '../widgets/brand_kit_stepper.dart';
@@ -132,9 +132,14 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
       final palette = await PaletteGenerator.fromImageProvider(
         imageProvider,
         maximumColorCount: 20,
-      );
+        // Timeout after 3 seconds to prevent freeze
+      ).timeout(const Duration(seconds: 3));
 
-      if (palette.colors.isEmpty) return;
+      // FALLBACK 1: If palette is empty or null
+      if (palette.colors.isEmpty) {
+        _applyDefaultBrandColors();
+        return;
+      }
 
       final primary = palette.dominantColor?.color ?? palette.colors.first;
 
@@ -144,7 +149,10 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
           palette.lightVibrantColor?.color ??
           (palette.colors.length > 1 ? palette.colors.elementAt(1) : primary);
 
-      // Safe check if primary and secondary are too similar, though dominant vs vibrant usually differs
+      // If secondary is too close to primary, try to find another color
+      if (secondary == primary && palette.colors.length > 2) {
+        secondary = palette.colors.elementAt(2);
+      }
 
       Color accent =
           palette.mutedColor?.color ??
@@ -173,6 +181,29 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
       }
     } catch (e) {
       debugPrint('Error extracting colors: $e');
+      if (mounted) {
+        _applyDefaultBrandColors();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not extract colors. Used default palette.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  void _applyDefaultBrandColors() {
+    if (mounted) {
+      setState(() {
+        _brandKit = _brandKit.copyWith(
+          colors: BrandColors(
+            primary: LPColors.primary,
+            secondary: LPColors.secondary,
+            accent: LPColors.accent,
+          ),
+        );
+      });
     }
   }
 
@@ -205,7 +236,15 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
             ),
           ),
         );
-        context.go(AppRoutes.home);
+        // Save marks onboarding as completed
+        if (mounted) {
+          final auth = Provider.of<AuthProvider>(context, listen: false);
+          await auth.completeBrandKit();
+          await auth.completeOnboarding();
+          if (mounted) {
+            context.go('/'); // Use go_router to force root resolution
+          }
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -217,11 +256,16 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
     }
   }
 
-  void _handleBack() {
-    if (context.canPop()) {
-      context.pop();
+  void _handleBack() async {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
     } else {
-      context.go(AppRoutes.home);
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      if (auth.isAuthenticated) {
+        context.go('/');
+      } else {
+        context.go('/landing');
+      }
     }
   }
 
@@ -807,7 +851,7 @@ class _BrandKitScreenState extends State<BrandKitScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),

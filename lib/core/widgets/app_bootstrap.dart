@@ -4,6 +4,7 @@ import '../services/secure_storage_service.dart';
 import '../services/app_lifecycle_observer.dart';
 import '../providers/auth_provider.dart';
 import '../theme/theme_manager.dart';
+import '../../features/onboarding/presentation/screens/splash_screen.dart';
 
 // Feature Storage
 import '../../features/content_studio/data/draft_storage.dart';
@@ -67,10 +68,22 @@ class _AppBootstrapState extends State<AppBootstrap> {
         },
       );
 
+      // 6. Conditional Splash Duration
+      // If user is already logged in, skip the long delay to fulfill "Never show splash again"
+      final isLoggedIn = await AuthProvider.instance.validateStoredSession();
+      if (!isLoggedIn) {
+        // Only show splash for 1.5s for new/logged-out users
+        await Future.delayed(const Duration(milliseconds: 1500));
+      } else {
+        // Fast path for returning users
+        await Future.delayed(const Duration(milliseconds: 300));
+      }
+
       LoggerService.info('AppBootstrap: Initialization complete');
       if (mounted) {
         setState(() {
           _isInitialized = true;
+          _error = null;
         });
       }
     } catch (e, stack) {
@@ -78,57 +91,62 @@ class _AppBootstrapState extends State<AppBootstrap> {
       if (mounted) {
         setState(() {
           _error = e.toString();
-          // Even on error, we might want to let the app proceed or show a specific error screen
-          // For now, we'll mark as initialized so the user isn't stuck on splash forever,
-          // but arguably a "Retry" screen is better.
-          // Let's set initialized = true and rely on ErrorBoundary or UI to handle broken state,
-          // OR show a red screen only if it's truly fatal.
-          // BUT per user request: "The app must ALWAYS render a visible screen"
-          // So we proceed.
-          _isInitialized = true;
+          _isInitialized = false; // Stay on bootstrap screen
         });
       }
     }
   }
 
+  void _retry() {
+    setState(() {
+      _error = null;
+      _isInitialized = false;
+    });
+    _initializeApp();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // If not initialized, showing a safe, hardcoded Splash Screen
+    // 1. Not Initialized -> Show Splash
     if (!_isInitialized) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          backgroundColor: const Color(0xFF1E3A5F), // LonePengu Blue (Dark)
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Hardcoded Logo implementation to be safe
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.auto_awesome,
-                      size: 40,
-                      color: Color(0xFF1E3A5F),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const CircularProgressIndicator(color: Colors.white),
-              ],
-            ),
-          ),
-        ),
+        theme: ThemeData.dark(), // Ensure splash is always in theme
+        home: _error != null ? _buildErrorUI() : const SplashScreen(),
       );
     }
 
-    // Once initialized, render the actual app
+    // 2. Initialized -> Show Main App
     return widget.child;
+  }
+
+  Widget _buildErrorUI() {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0F1115),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 64),
+            const SizedBox(height: 16),
+            const Text(
+              'Failed to start LonePengu',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _error ?? 'Unknown error',
+              style: const TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton(onPressed: _retry, child: const Text('Try Again')),
+          ],
+        ),
+      ),
+    );
   }
 }

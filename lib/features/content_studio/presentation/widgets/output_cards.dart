@@ -1,6 +1,7 @@
 import 'package:lone_pengu/core/design/lp_design.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:video_player/video_player.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../data/content_models.dart';
 
@@ -89,7 +90,7 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
         boxShadow: widget.isExpanded
             ? [
                 BoxShadow(
-                  color: LPColors.primary.withValues(alpha: 0.15),
+                  color: LPColors.primary.withOpacity(0.15),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -112,7 +113,7 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: LPColors.primary.withValues(alpha: 0.1),
+                      color: LPColors.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -200,7 +201,7 @@ class _CaptionOutputCardState extends State<CaptionOutputCard> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: LPColors.accent.withValues(alpha: 0.1),
+                          color: LPColors.accent.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -441,9 +442,8 @@ class CarouselSlideCard extends StatelessWidget {
   }
 }
 
-/// Video output card with progress
-/// Theme-aware: adapts to light/dark mode
-class VideoOutputCard extends StatelessWidget {
+/// Video output card with actual video player
+class VideoOutputCard extends StatefulWidget {
   final double progress;
   final bool isComplete;
   final String? videoUrl;
@@ -458,6 +458,68 @@ class VideoOutputCard extends StatelessWidget {
     this.onDownload,
     this.onUseInScheduler,
   });
+
+  @override
+  State<VideoOutputCard> createState() => _VideoOutputCardState();
+}
+
+class _VideoOutputCardState extends State<VideoOutputCard> {
+  VideoPlayerController? _controller;
+  bool _isInitialized = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isComplete && widget.videoUrl != null) {
+      _initPlayer();
+    }
+  }
+
+  @override
+  void didUpdateWidget(VideoOutputCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isComplete && !oldWidget.isComplete && widget.videoUrl != null) {
+      _initPlayer();
+    }
+  }
+
+  Future<void> _initPlayer() async {
+    if (_controller != null) {
+      await _controller!.dispose();
+      _controller = null;
+    }
+
+    setState(() {
+      _isInitialized = false;
+      _error = null;
+    });
+
+    try {
+      _controller = VideoPlayerController.networkUrl(
+        Uri.parse(widget.videoUrl!),
+      );
+      await _controller!.initialize();
+      await _controller!.setLooping(true);
+      if (mounted) {
+        setState(() => _isInitialized = true);
+        _controller!.play();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(
+          () => _error = 'Motion Generation failed. Using static fallback.',
+        );
+      }
+      debugPrint('Video init failed: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -481,94 +543,40 @@ class VideoOutputCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Video thumbnail area
+          // Video Player area
           AspectRatio(
             aspectRatio: 16 / 9,
             child: Container(
+              clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 color: videoBgColor,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: isComplete
-                  ? Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        const Icon(
-                          Icons.videocam,
-                          size: 48,
-                          color: Colors.white,
-                        ),
-                        Positioned(
-                          bottom: 12,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: LPColors.accent,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.check_circle,
-                                  size: 14,
-                                  color: Colors.white,
-                                ),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Video Ready',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.video_camera_back_outlined,
-                          size: 40,
-                          color: textSecondary,
-                        ),
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            backgroundColor: isDark
-                                ? LPColors.borderDark
-                                : LPColors.grey700,
-                            valueColor: const AlwaysStoppedAnimation(
-                              LPColors.accent,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Generating video... ${(progress * 100).toInt()}%',
-                          style: TextStyle(color: textSecondary, fontSize: 12),
-                        ),
-                      ],
-                    ),
+              child: widget.isComplete
+                  ? (_error != null
+                        ? _buildErrorState(theme)
+                        : (_isInitialized
+                              ? Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    VideoPlayer(_controller!),
+                                    _buildVideoControls(),
+                                    _buildVideoBadge(),
+                                  ],
+                                )
+                              : const Center(
+                                  child: CircularProgressIndicator(),
+                                )))
+                  : _buildLoadingOverlay(textSecondary, isDark),
             ),
           ),
-          if (isComplete) ...[
+          if (widget.isComplete && _error == null) ...[
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: onDownload,
+                    onPressed: widget.onDownload,
                     icon: const Icon(Icons.download, size: 18),
                     label: const Text('Download'),
                   ),
@@ -576,7 +584,7 @@ class VideoOutputCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: onUseInScheduler,
+                    onPressed: widget.onUseInScheduler,
                     icon: const Icon(Icons.calendar_month, size: 18),
                     label: const Text('Schedule'),
                     style: ElevatedButton.styleFrom(
@@ -590,6 +598,116 @@ class VideoOutputCard extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildErrorState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.video_collection_outlined,
+            color: theme.colorScheme.error,
+            size: 40,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _error!,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextButton.icon(
+            onPressed: _initPlayer,
+            icon: const Icon(Icons.refresh, size: 16),
+            label: const Text('Retry Motion Generation'),
+            style: TextButton.styleFrom(
+              foregroundColor: theme.colorScheme.error,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVideoControls() {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _controller!.value.isPlaying
+              ? _controller!.pause()
+              : _controller!.play();
+        });
+      },
+      child: Container(
+        color: Colors.transparent,
+        child: Center(
+          child: AnimatedOpacity(
+            opacity: _controller!.value.isPlaying ? 0.0 : 1.0,
+            duration: const Duration(milliseconds: 300),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: const BoxDecoration(
+                color: Colors.black54,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.play_arrow,
+                color: Colors.white,
+                size: 32,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVideoBadge() {
+    return Positioned(
+      bottom: 12,
+      right: 12,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: LPColors.accent.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Text(
+          'AI Motion',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingOverlay(Color textSecondary, bool isDark) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.video_camera_back_outlined, size: 40, color: textSecondary),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: LinearProgressIndicator(
+            value: widget.progress,
+            backgroundColor: isDark ? LPColors.borderDark : LPColors.grey700,
+            valueColor: const AlwaysStoppedAnimation(LPColors.accent),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Generating video... ${(widget.progress * 100).toInt()}%',
+          style: TextStyle(color: textSecondary, fontSize: 12),
+        ),
+      ],
     );
   }
 }

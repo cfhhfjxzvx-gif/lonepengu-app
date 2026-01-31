@@ -164,26 +164,29 @@ class StylePanel extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 12),
-      Row(
-        children: [
-          _buildAlignmentButton(
-            context,
-            Icons.format_align_left_rounded,
-            TextAlign.left,
-          ),
-          const SizedBox(width: 8),
-          _buildAlignmentButton(
-            context,
-            Icons.format_align_center_rounded,
-            TextAlign.center,
-          ),
-          const SizedBox(width: 8),
-          _buildAlignmentButton(
-            context,
-            Icons.format_align_right_rounded,
-            TextAlign.right,
-          ),
-        ],
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _buildAlignmentButton(
+              context,
+              Icons.format_align_left_rounded,
+              TextAlign.left,
+            ),
+            const SizedBox(width: 8),
+            _buildAlignmentButton(
+              context,
+              Icons.format_align_center_rounded,
+              TextAlign.center,
+            ),
+            const SizedBox(width: 8),
+            _buildAlignmentButton(
+              context,
+              Icons.format_align_right_rounded,
+              TextAlign.right,
+            ),
+          ],
+        ),
       ),
       const SizedBox(height: 24),
       Text(

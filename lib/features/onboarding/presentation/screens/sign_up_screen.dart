@@ -6,6 +6,7 @@ import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/services/logger_service.dart';
 import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/widgets/responsive_builder.dart';
+import '../../../../routes/root_router.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -78,8 +79,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       if (success) {
         LoggerService.auth('Sign-up successful, navigating to home');
-        // Clear potential redirect loops by going to home directly
-        context.go(AppRoutes.home);
+        // Clear potential redirect loops by going to RootRouter directly
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => RootRouter()),
+            (route) => false,
+          );
+        }
       } else {
         final error = AuthProvider.instance.errorMessage ?? 'Sign up failed';
         LoggerService.auth('Sign-up failed', {'error': error});

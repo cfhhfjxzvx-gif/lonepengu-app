@@ -8,6 +8,7 @@ class EditorArgs {
   final String? aspectPreset; // Must match EditorAspectRatio values
   final String? sourcePlatform;
   final String? promptText;
+  final String? generatedCaption;
   final Uint8List? imageBytes;
 
   EditorArgs({
@@ -16,6 +17,7 @@ class EditorArgs {
     this.aspectPreset,
     this.sourcePlatform,
     this.promptText,
+    this.generatedCaption,
     this.imageBytes,
   });
 }

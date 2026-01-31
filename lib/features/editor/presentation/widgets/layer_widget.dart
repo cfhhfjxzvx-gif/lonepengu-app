@@ -54,12 +54,20 @@ class _LayerWidgetState extends State<LayerWidget> {
       left: widget.layer.position.dx,
       top: widget.layer.position.dy,
       child: GestureDetector(
-        onTap: widget.onTap,
+        onTap: () {
+          if (widget.isSelected) {
+            widget.onDoubleTap();
+          } else {
+            widget.onTap();
+          }
+        },
         onDoubleTap: widget.onDoubleTap,
         onScaleStart: (details) {
           _baseScale = widget.layer.scale;
           _baseRotation = widget.layer.rotation;
-          widget.onTap(); // Select on start interaction
+          if (!widget.isSelected) {
+            widget.onTap(); // Select on start interaction if not selected
+          }
         },
         onScaleUpdate: (details) {
           // 1. Handle Dragging (Translation)

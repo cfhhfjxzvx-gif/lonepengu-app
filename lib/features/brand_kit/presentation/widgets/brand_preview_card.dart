@@ -161,30 +161,23 @@ class BrandPreviewCard extends StatelessWidget {
       width: 44,
       height: 44,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [brandKit.colors.primary, brandKit.colors.secondary],
-        ),
-        borderRadius: BorderRadius.circular(20),
+        color: brandKit.colors.primary,
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: brandKit.colors.primary.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: brandKit.colors.primary.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Center(
-        child: Text(
+        child: Icon(
           brandKit.businessName.isEmpty
-              ? 'B'
-              : brandKit.businessName[0].toUpperCase(),
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
+              ? Icons.auto_awesome_rounded
+              : Icons.business_center_rounded,
+          color: Colors.white,
+          size: 24,
         ),
       ),
     );

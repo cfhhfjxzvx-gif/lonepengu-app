@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../repositories/auth_repository.dart';
 import '../services/logger_service.dart';
 import '../services/secure_storage_service.dart';
+import '../../features/settings/data/settings_storage.dart';
 
 /// Auth Provider for state management
 /// Provides reactive auth state across the app
@@ -25,6 +26,12 @@ class AuthProvider extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  bool _onboardingCompleted = false;
+  bool get onboardingCompleted => _onboardingCompleted;
+
+  bool _brandKitCompleted = false;
+  bool get brandKitCompleted => _brandKitCompleted;
+
   bool get isAuthenticated => _state == AuthState.authenticated;
   bool get isLoading => _state == AuthState.loading;
   bool get isUnauthenticated => _state == AuthState.unauthenticated;
@@ -40,11 +47,15 @@ class AuthProvider extends ChangeNotifier {
     LoggerService.auth('AuthProvider initializing');
     await SecureStorageService.instance.init();
 
-    // Non-blocking auth check to prevent app freeze on launch
-    // The AppRouter will handle the buffering state provided by isLoading
-    checkAuthStatus();
+    // Check auth status BEFORE marking as initialized
+    await checkAuthStatus();
+
+    // Load persisted flags
+    _onboardingCompleted = await SettingsStorage.isOnboardingCompleted();
+    _brandKitCompleted = await SettingsStorage.isBrandKitCompleted();
 
     _isInitialized = true;
+    notifyListeners();
   }
 
   /// Check current auth status
@@ -61,20 +72,19 @@ class AuthProvider extends ChangeNotifier {
       } else {
         _user = null;
         _setState(AuthState.unauthenticated);
-        LoggerService.auth('No valid session');
+        LoggerService.auth('No valid session found');
       }
     } catch (e) {
-      LoggerService.error('Auth check failed', e);
+      LoggerService.error('Auth verification failed', e);
       _user = null;
       _setState(AuthState.unauthenticated);
     }
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // LOGIN
+  // LOGIN / AUTH ACTIONS
   // ═══════════════════════════════════════════════════════════════
 
-  /// Login with email
   Future<bool> loginWithEmail(
     String email, {
     String? name,
@@ -85,36 +95,6 @@ class AuthProvider extends ChangeNotifier {
       provider: 'email',
       name: name,
       password: password,
-    );
-  }
-
-  /// Login with Google
-  Future<bool> loginWithGoogle({
-    required String email,
-    String? name,
-    String? providerId,
-    String? avatarUrl,
-  }) async {
-    return _login(
-      email: email,
-      provider: 'google',
-      name: name,
-      providerId: providerId,
-      avatarUrl: avatarUrl,
-    );
-  }
-
-  /// Login with Apple
-  Future<bool> loginWithApple({
-    required String email,
-    String? name,
-    String? providerId,
-  }) async {
-    return _login(
-      email: email,
-      provider: 'apple',
-      name: name,
-      providerId: providerId,
     );
   }
 
@@ -155,51 +135,51 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      LoggerService.error('Login error', e);
-      _errorMessage = 'Login failed. Please try again.';
+      LoggerService.error('Login process error', e);
+      _errorMessage = 'Login failed. Please check your connection.';
       _setState(AuthState.unauthenticated);
       return false;
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // LOGOUT
-  // ═══════════════════════════════════════════════════════════════
-
-  /// Logout current user
   Future<void> logout() async {
     _setState(AuthState.loading);
-
     try {
       await AuthRepository.instance.logout();
+      await SettingsStorage.clearUserData(); // Optional: Clear some local cache
     } catch (e) {
       LoggerService.error('Logout error', e);
     }
-
     _user = null;
     _errorMessage = null;
     _setState(AuthState.unauthenticated);
     LoggerService.auth('User logged out');
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // SESSION MANAGEMENT
-  // ═══════════════════════════════════════════════════════════════
-
-  /// Refresh session
-  Future<bool> refreshSession() async {
-    final isValid = await AuthRepository.instance.validateSession();
-    if (!isValid) {
-      _user = null;
-      _setState(AuthState.unauthenticated);
-      return false;
-    }
-    return true;
+  /// Check if there's a valid session stored without trigger loading states
+  Future<bool> validateStoredSession() async {
+    return await AuthRepository.instance.isLoggedIn();
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // HELPERS
+  // REPEAT LOGIN FIX & PERSISTENCE
   // ═══════════════════════════════════════════════════════════════
+
+  /// Complete onboarding and persist
+  Future<void> completeOnboarding() async {
+    _onboardingCompleted = true;
+    await SettingsStorage.setOnboardingCompleted(true);
+    notifyListeners();
+    LoggerService.auth('Onboarding marked as complete');
+  }
+
+  /// Complete brand kit and persist
+  Future<void> completeBrandKit() async {
+    _brandKitCompleted = true;
+    await SettingsStorage.setBrandKitCompleted(true);
+    notifyListeners();
+    LoggerService.auth('Brand Kit marked as complete');
+  }
 
   void _setState(AuthState newState) {
     if (_state != newState) {
@@ -208,12 +188,11 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Clear any error message
   void clearError() {
     _errorMessage = null;
     notifyListeners();
   }
 }
 
-/// Auth states
+/// Auth states single source of truth
 enum AuthState { initial, loading, authenticated, unauthenticated }

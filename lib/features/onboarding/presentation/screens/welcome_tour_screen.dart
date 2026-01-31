@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/design/lp_design.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/widgets/page_indicator.dart';
 import '../../../../core/widgets/responsive_builder.dart';
+import 'brand_setup_intro_screen.dart';
 
 class WelcomeTourScreen extends StatefulWidget {
   const WelcomeTourScreen({super.key});
@@ -54,12 +54,18 @@ class _WelcomeTourScreenState extends State<WelcomeTourScreen> {
         curve: Curves.easeOutCubic,
       );
     } else {
-      context.go(AppRoutes.brandSetupIntro);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const BrandSetupIntroScreen()),
+      );
     }
   }
 
   void _skipTour() {
-    context.go(AppRoutes.brandSetupIntro);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const BrandSetupIntroScreen()),
+    );
   }
 
   @override

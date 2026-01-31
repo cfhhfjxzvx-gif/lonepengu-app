@@ -1,9 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/responsive_builder.dart';
-import '../../../../core/providers/auth_provider.dart';
-import '../../../../core/constants/app_constants.dart';
 
 /// Premium animated splash screen for LonePengu
 class SplashScreen extends StatefulWidget {
@@ -105,15 +102,8 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateToLanding() {
-    _safetyTimer?.cancel();
-    if (!mounted) return;
-
-    final isAuthenticated = AuthProvider.instance.isAuthenticated;
-    if (isAuthenticated) {
-      context.go(AppRoutes.home);
-    } else {
-      context.go(AppRoutes.landing);
-    }
+    // PASSIVE SPLASH: No navigation here.
+    // AppBootstrap handles the switch to RootRouter when initialization completes.
   }
 
   @override

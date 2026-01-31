@@ -32,7 +32,7 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
   BrandKit? _brandKit;
 
   // Generation state
-  ContentMode _currentMode = ContentMode.auto;
+  ContentMode _currentMode = ContentMode.caption;
   bool _isGenerating = false;
   double _progress = 0;
   GeneratedContent? _generatedContent;
@@ -65,7 +65,7 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(_onTabChanged);
     _promptController.addListener(_onPromptChanged);
     _loadBrandKit();
@@ -98,16 +98,10 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
   }
 
   void _onPromptChanged() {
-    if (_currentMode == ContentMode.auto) {
-      final result = IntentDetector.detectIntent(_promptController.text);
-      setState(() {
-        _detectedIntent = result;
-      });
-    } else {
-      setState(() {
-        _detectedIntent = null;
-      });
-    }
+    // Intent detection handled in service now
+    setState(() {
+      _detectedIntent = null;
+    });
   }
 
   @override
@@ -145,89 +139,59 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
       _errorMessage = null;
     });
 
-    try {
-      ContentMode generationMode = _currentMode;
-      int? slideCountOverride;
-      VideoDuration? durationOverride;
+    int attempts = 0;
+    const maxAttempts = 2;
 
-      if (_currentMode == ContentMode.auto) {
-        if (_detectedIntent == null || _detectedIntent!.confidence < 0.45) {
-          final userIntent = await _showIntentConfirmationDialog();
-          if (userIntent == null) {
-            setState(() => _isGenerating = false);
-            return;
+    while (attempts < maxAttempts) {
+      try {
+        final request = GenerationRequest(
+          mode: _currentMode,
+          promptText: _promptController.text,
+          industry: _selectedIndustry,
+          goal: _selectedGoal,
+          platforms: _selectedPlatforms,
+          tone: _selectedTone,
+          length: _selectedLength,
+          cta: _selectedCta,
+          imageStyle: _selectedImageStyle,
+          aspectRatio: _selectedAspectRatio,
+          slideCount: _slideCount,
+          carouselStyle: _selectedCarouselStyle,
+          duration: _selectedDuration,
+          videoStyle: _selectedVideoStyle,
+        );
+
+        final result = await AiContentService.generateFromPrompt(
+          request,
+          onProgress: (p) => setState(() => _progress = p),
+        );
+
+        if (mounted) {
+          setState(() {
+            _generatedContent = result;
+            _isGenerating = false;
+            _expandedVariantIndex = 0;
+            _errorMessage = null;
+          });
+        }
+        return; // Success, exit
+      } catch (e) {
+        attempts++;
+        print('UI Generation attempt $attempts failed: $e');
+        if (attempts >= maxAttempts) {
+          if (mounted) {
+            setState(() {
+              _errorMessage =
+                  'AI service is busy. Please check your prompt and try again.';
+              _isGenerating = false;
+            });
           }
-          generationMode = userIntent;
         } else {
-          generationMode = _detectedIntent!.intent;
-          slideCountOverride = _detectedIntent!.metadata['slideCount'] as int?;
-          durationOverride =
-              _detectedIntent!.metadata['duration'] as VideoDuration?;
+          // Wait a bit before auto-retry
+          await Future.delayed(const Duration(seconds: 1));
         }
       }
-
-      final request = GenerationRequest(
-        mode: generationMode,
-        promptText: _promptController.text,
-        industry: _selectedIndustry,
-        goal: _selectedGoal,
-        platforms: _selectedPlatforms,
-        tone: _selectedTone,
-        length: _selectedLength,
-        cta: _selectedCta,
-        imageStyle: _selectedImageStyle,
-        aspectRatio: _selectedAspectRatio,
-        slideCount: slideCountOverride ?? _slideCount,
-        carouselStyle: _selectedCarouselStyle,
-        duration: durationOverride ?? _selectedDuration,
-        videoStyle: _selectedVideoStyle,
-      );
-
-      final result = await AiContentService.generateFromPrompt(
-        request,
-        onProgress: (p) => setState(() => _progress = p),
-      );
-
-      if (mounted) {
-        setState(() {
-          _generatedContent = result;
-          _isGenerating = false;
-          _expandedVariantIndex = 0;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Failed to generate content. Please try again.';
-          _isGenerating = false;
-        });
-      }
     }
-  }
-
-  Future<ContentMode?> _showIntentConfirmationDialog() async {
-    return showDialog<ContentMode>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('What do you want to generate?'),
-        content: const Text(
-          "I'm not quite sure about your intent. Please select a mode:",
-        ),
-        actions: [
-          ...[
-            ContentMode.caption,
-            ContentMode.image,
-            ContentMode.carousel,
-            ContentMode.video,
-          ].map((m) {
-            return TextButton(
-              onPressed: () => Navigator.pop(context, m),
-              child: Text(m.displayName),
-            );
-          }),
-        ],
-      ),
-    );
   }
 
   Future<void> _surprise() async {
@@ -479,22 +443,16 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
 
   Widget _buildLoadingState() {
     String message;
-    switch (_currentMode) {
-      case ContentMode.auto:
-        message = 'AI analyzing your intent...';
-        break;
-      case ContentMode.caption:
-        message = 'Crafting your caption...';
-        break;
-      case ContentMode.image:
-        message = 'Generating image... ${(_progress * 100).toInt()}%';
-        break;
-      case ContentMode.carousel:
-        message = 'Creating carousel slides...';
-        break;
-      case ContentMode.video:
-        message = 'Rendering video... ${(_progress * 100).toInt()}%';
-        break;
+    if (_progress < 0.2) {
+      message = 'Analyzing user intent...';
+    } else if (_progress < 0.5) {
+      message = 'Synthesizing creative content...';
+    } else if (_progress < 0.8) {
+      message = _currentMode == ContentMode.image
+          ? 'Painting your vision with AI...'
+          : 'Refining tone and platform fit...';
+    } else {
+      message = 'Finalizing your output...';
     }
 
     if (_currentMode == ContentMode.video) {
@@ -506,28 +464,32 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
 
   Widget _buildErrorState() {
     final theme = Theme.of(context);
-    return AppCard.outlined(
-      borderColor: theme.colorScheme.error.withValues(alpha: 0.3),
-      child: Column(
-        children: [
-          Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
-          Gap(height: LPSpacing.sm),
-          Text(
-            _errorMessage ?? 'Something went wrong',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: LPSpacing.xl),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.info_outline,
+              size: 40,
+              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
             ),
-          ),
-          Gap(height: LPSpacing.md),
-          AppButton.custom(
-            label: 'Try Again',
-            icon: Icons.refresh,
-            onTap: _generate,
-            size: ButtonSize.sm,
-            color: theme.colorScheme.error,
-          ),
-        ],
+            Gap(height: LPSpacing.sm),
+            Text(
+              _errorMessage ?? 'Generation paused',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            Gap(height: LPSpacing.xs),
+            TextButton.icon(
+              onPressed: _generate,
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text('Try Again'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -565,7 +527,6 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
 
   Widget _buildModeOutput() {
     switch (_generatedContent!.mode) {
-      case ContentMode.auto:
       case ContentMode.caption:
         return Column(
           children: _generatedContent!.captionVariants.asMap().entries.map((
@@ -633,6 +594,10 @@ class _ContentStudioScreenState extends State<ContentStudioScreen>
                     aspectPreset: aspect.displayName,
                     sourcePlatform: priorityPlatform.displayName,
                     promptText: _promptController.text,
+                    generatedCaption:
+                        _generatedContent?.captionVariants.isNotEmpty == true
+                        ? _generatedContent!.captionVariants.first.caption
+                        : null,
                   ),
                 );
               },

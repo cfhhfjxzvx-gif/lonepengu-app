@@ -7,8 +7,8 @@ import 'core/services/app_lifecycle_observer.dart';
 import 'core/services/logger_service.dart';
 import 'core/widgets/error_boundary.dart';
 import 'core/theme/theme_manager.dart';
-import 'core/widgets/app_bootstrap.dart'; // Added
-import 'routes/app_router.dart';
+import 'core/widgets/app_bootstrap.dart';
+import 'routes/root_router.dart';
 
 void main() async {
   // ═══════════════════════════════════════════════════════════════
@@ -36,8 +36,6 @@ void main() async {
       // ═══════════════════════════════════════════════════════════════
       // INITIALIZATION
       // ═══════════════════════════════════════════════════════════════
-
-      LoggerService.info('LonePengu App Starting');
 
       LoggerService.info('LonePengu App Starting');
 
@@ -103,7 +101,7 @@ class _AppContent extends StatelessWidget {
           onError: () {
             LoggerService.error('Error boundary triggered');
           },
-          child: MaterialApp.router(
+          child: MaterialApp(
             title: 'LonePengu',
             debugShowCheckedModeBanner: false,
 
@@ -112,13 +110,25 @@ class _AppContent extends StatelessWidget {
             darkTheme: themeManager.darkTheme,
             themeMode: themeManager.themeMode,
 
-            // Router
-            routerConfig: AppRouter.router,
+            // STRICT NAVIGATION: Use RootRouter for logic
+            home: RootRouter(),
 
-            // Builder for global widgets
+            // Global Error Widget
             builder: (context, child) {
-              // You can add global widgets here
-              // Like connectivity indicator, etc.
+              ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+                return Scaffold(
+                  body: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        "Something went wrong.\nPlease restart the app.",
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                  ),
+                );
+              };
               return child ?? const SizedBox.shrink();
             },
           ),
